@@ -146,6 +146,71 @@ app.get("/teams", (req, res) => {
     });
 });
 
+/*
+//delete user by id
+app.post("/deleteUser",(req,res)=>{
+    const { id }=req.body;
+    const query ="DELETE FROM users WHERE id = ?";
+    db.query(query,[id],(err)=>{
+        if(err){
+            console.error("Delete user error:",err);
+            return res.status(500).json({ success:false,error: err.message});
+        }
+        res.json({ success:true,message:"user deleted successfully"});
+    });
+});
+
+// Delete team by id
+app.post("/deleteTeam", (req, res) => {
+    const { id } = req.body;
+    const query = "DELETE FROM teams WHERE id = ?";
+    db.query(query, [id], (err) => {
+        if (err) {
+            console.error("Delete Team Error:", err);
+            return res.status(500).json({ success: false, error: err.message });
+        }
+        res.json({ success: true, message: "Team deleted successfully" });
+    });
+});
+
+*/
+
+//delete user by name
+app.post("/deleteUserByName",(req,res)=>{
+    const { username }=req.body;
+
+    const query="delete from users where username=?";
+    db.query(query,[username],(err,result)=>{
+        if(err){
+            console.error("delete user error:",err);
+            return res.status(500).json({success:false,error:err.message});
+        }
+        if(result.affectedRows===0){
+            return res.status(404).json({success:false,message:"user not found"});
+        }
+
+        res.json({success:true,message:"user deleted!"});
+    });
+});
+
+//delete team by name
+app.post("/deleteTeamByName", (req, res) => {
+    const { name } = req.body;
+
+    const query = "DELETE FROM teams WHERE name=?";
+    db.query(query, [name], (err, result) => {
+        if (err) {
+            console.error("Delete Team Error:", err);
+            return res.status(500).json({ success: false, error: err.message });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: "Team not found" });
+        }
+
+        res.json({ success: true, message: "Team deleted!" });
+    });
+});
 
 
 

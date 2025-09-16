@@ -2,4 +2,5 @@
 # i added "adduser " and "addteam"
 # i forgot to define res in adduser in app.js,during fixing
 #in sql, wrote "null" and "on delete set null"
-#
+#i realised , i made it such a way, i need to enter ids and not names to assign tasks
+#i added delete and, date and time format changed

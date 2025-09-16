@@ -1,0 +1,8 @@
+--make it so that i need to type names
+--show user and teams
+--add CSS
+--add authetication
+--add time selection
+--add another page
+--add email if possile
+--add admin, normal user

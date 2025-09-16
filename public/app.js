@@ -18,7 +18,23 @@ async function fetchtasks(){
 
     tasks.forEach(t => {
         const li=document.createElement("li");
-        li.textContent=`${t.id}. ${t.title} | ${t.description} | assigned: ${t.assigned_to || 'N/A'} | status: ${t.status} | deadline: ${t.deadline || 'N/A'}`;
+
+
+        //format deadline time if exists
+        let deadlineformatted="N/A";
+        if(t.deadline){
+            const d=new Date(t.deadline);
+            deadlineformatted=d.toLocaleString("en-GB",{
+                day:"2-digit",
+                month:"2-digit",
+                year:"numeric",
+                hour:"2-digit",
+                minute:"2-digit"
+            });
+        }
+        li.textContent=`${t.id}- ${t.title} :: ${t.description} || assigned to: ${t.assigned_to || 'error_occured'} || status: ${t.status} || deadline: ${deadlineformatted} `;
+        
+        //li.textContent=`${t.id}. ${t.title} | ${t.description} | assigned: ${t.assigned_to || 'N/A'} | status: ${t.status} | deadline: ${t.deadline || 'N/A'}`;
 
         //status update buttons
         if(t.status != 'done'){
@@ -187,6 +203,79 @@ async function fetchTeams() {
         select.appendChild(option);
     });
 }
+
+
+/*
+async  function deleteUser(id){
+    try{
+        const res=await fetch("/deleteUser",{
+            method: "POST",
+            headers: { "Content-Type":"application/json"},
+            body:JSON.stringify({id})
+        });
+        const data=await res.json();
+        alert(data.message);
+        fetchUsers();
+    }catch(err){
+        console.error("Delete User Error:",err);
+        alert("Failed to delete user!");
+    }
+}
+
+async function deleteTeam(id) {
+    try {
+        const res = await fetch("/deleteTeam", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        alert(data.message);
+        fetchTeams(); // refresh dropdown
+    } catch (err) {
+        console.error("Delete Team Error:", err);
+        alert("Failed to delete team!");
+    }
+}
+*/
+
+
+
+async function deleteUserByName(username){
+    try{
+        const res=await fetch("/deleteUserByName",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({username})
+        });
+        const data=await res.json();
+        alert(data.message);
+        fetchUsers();
+        fetchtasks();
+    }catch(err){
+        console.error("delete user error:",err);
+        alert("failed to delete user!");
+    }
+}
+
+
+async function deleteTeamByName(name) {
+    try {
+        const res = await fetch("/deleteTeamByName", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name })
+        });
+        const data = await res.json();
+        alert(data.message);
+        fetchTeams(); // refresh dropdown
+    } catch (err) {
+        console.error("Delete Team Error:", err);
+        alert("Failed to delete team!");
+    }
+}
+
+
 
 
 
