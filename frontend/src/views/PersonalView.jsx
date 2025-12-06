@@ -2,33 +2,42 @@ import UserForm from "../components/UserForm";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
 
-export default function PersonalView({ tasks, users, teams, refresh }) {
+export default function PersonalView({ tasks, users, teams, refresh, user }) {
+  console.log("PERSONAL VIEW USER:", user);
+
   return (
-    <div className="max-w-3xl mx-auto space-y-10">
-      <h2 className="text-3xl font-bold text-indigo-900 mb-6">
-        🧍 Personal To-Do List
+    <div className="max-w-3xl mx-auto space-y-10 py-6 px-4">
+
+      {/* Page Title */}
+      <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">
+        🧍 Your Personal Dashboard
       </h2>
 
-      {/* Add User (for single user setup) */}
-      <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition">
+      {/* ADMIN-ONLY — Create User Section */}
+      {user?.role === "admin" && (
+        <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+          <h3 className="text-xl font-semibold text-indigo-800 mb-4">
+            👑 Admin — Create User
+          </h3>
+          <UserForm refresh={refresh} user={user} />
+        </section>
+      )}
+
+      {/* Add Task Section */}
+      <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
         <h3 className="text-xl font-semibold text-indigo-800 mb-4">
-          Add Yourself
+          Add a New Task
         </h3>
-        <UserForm refresh={refresh} />
-      </div>
+        <TaskForm users={users} teams={teams} refresh={refresh} mode="personal" />
+      </section>
 
-      {/* Add Task */}
-      <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition">
-        <TaskForm users={users} teams={teams} mode="personal" refresh={refresh} />
-      </div>
-
-      {/* Task List */}
-      <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition">
+      {/* Task List Section */}
+      <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
         <h3 className="text-xl font-semibold text-indigo-800 mb-4">
           Your Tasks
         </h3>
-        <TaskList tasks={tasks} mode="personal" refresh={refresh} />
-      </div>
+        <TaskList tasks={tasks} refresh={refresh} mode="personal" />
+      </section>
     </div>
   );
 }

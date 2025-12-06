@@ -12,14 +12,48 @@ function App() {
   const [teams, setTeams] = useState([]);
   const [dataChanged, setDataChanged] = useState(false);
   const [activeView, setActiveView] = useState("personal");
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [showSignup, setShowSignup] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) setIsLoggedIn(true);
-  }, []);
 
+  // -------------------------------------------------------------
+  // 🔐 CHECK AUTH SESSION (Cookie-based)
+  // -------------------------------------------------------------
+useEffect(() => {
+  async function checkSession() {
+    try {
+      const res = await fetch("/auth/check", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log("AUTH CHECK RESULT:", data);
+
+        setCurrentUser(data.user); // <-- Save admin/user info
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setIsLoggedIn(false);
+    } finally {
+      setCheckingAuth(false);
+    }
+  }
+
+  checkSession();
+}, []);
+
+
+  // -------------------------------------------------------------
+  // 🧲 FETCH TASKS / USERS / TEAMS (Cookie included auto)
+  // -------------------------------------------------------------
   useEffect(() => {
     if (isLoggedIn) {
       fetchTasks();
@@ -28,58 +62,81 @@ function App() {
     }
   }, [dataChanged, isLoggedIn]);
 
-async function fetchTasks() {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await fetch("/tasks", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error("Failed to fetch tasks");
-    const data = await res.json();
-    setTasks(data);
-  } catch (err) {
-    console.error(err);
+  async function fetchTasks() {
+    try {
+      const res = await fetch("/tasks", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch tasks");
+
+      const data = await res.json();
+      setTasks(data);
+    } catch (err) {
+      console.error(err);
+    }
   }
-}
 
+  async function fetchUsers() {
+    try {
+      const res = await fetch("/users", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch users");
 
-async function fetchUsers() {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await fetch("/users", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error("Failed to fetch users");
-    const data = await res.json();
-    setUsers(data);
-  } catch (err) {
-    console.error(err);
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error(err);
+    }
   }
-}
 
+  async function fetchTeams() {
+    try {
+      const res = await fetch("/teams", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch teams");
 
-async function fetchTeams() {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await fetch("/teams", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error("Failed to fetch teams");
-    const data = await res.json();
-    setTeams(data);
-  } catch (err) {
-    console.error(err);
+      const data = await res.json();
+      setTeams(data);
+    } catch (err) {
+      console.error(err);
+    }
   }
-}
 
+  // -------------------------------------------------------------
+  // 🚪 LOGOUT — Clear HttpOnly cookie on backend
+  // -------------------------------------------------------------
+  async function handleLogout() {
+    try {
+      await fetch("/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
 
-  // 🧩 Logout function
-  function handleLogout() {
-    localStorage.removeItem("token");
     setIsLoggedIn(false);
   }
 
-  // 🧭 Page switch logic
+  // -------------------------------------------------------------
+  // ⏳ Show Loading Screen While Checking Session
+  // -------------------------------------------------------------
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-700">
+        <div className="text-xl font-semibold">Checking session...</div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // 🔑 Show Login / Signup Pages
+  // -------------------------------------------------------------
   if (!isLoggedIn) {
     return showSignup ? (
       <Signup
@@ -94,7 +151,9 @@ async function fetchTeams() {
     );
   }
 
-  // ✅ Main dashboard after login
+  // -------------------------------------------------------------
+  // 🏡 MAIN LOGGED-IN DASHBOARD
+  // -------------------------------------------------------------
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar
@@ -102,6 +161,8 @@ async function fetchTeams() {
         setActiveView={setActiveView}
         onLogout={handleLogout}
       />
+
+      {/* Main Content */}
       <div className="flex-1 p-6 overflow-auto">
         {activeView === "personal" ? (
           <PersonalView
@@ -109,6 +170,7 @@ async function fetchTeams() {
             users={users}
             teams={teams}
             refresh={() => setDataChanged(!dataChanged)}
+            user={currentUser}
           />
         ) : (
           <TeamView
@@ -116,6 +178,7 @@ async function fetchTeams() {
             users={users}
             teams={teams}
             refresh={() => setDataChanged(!dataChanged)}
+            currentUser={currentUser}
           />
         )}
       </div>

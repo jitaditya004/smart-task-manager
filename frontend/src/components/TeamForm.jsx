@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 function TeamForm({ refresh }) {
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function addTeam() {
     if (!name.trim()) {
@@ -9,19 +10,14 @@ function TeamForm({ refresh }) {
       return;
     }
 
-    const token = localStorage.getItem("token"); // ✅ Get token from login
-
-    if (!token) {
-      alert("You must be logged in to add a team!");
-      return;
-    }
-
     try {
-      const res = await fetch("/teams/addTeam", {
+      setLoading(true);
+
+      const res = await fetch("/teams/add", {
         method: "POST",
+        credentials: "include", // ⭐ REQUIRED for HttpOnly cookie auth
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ send token to backend
         },
         body: JSON.stringify({ name }),
       });
@@ -29,32 +25,41 @@ function TeamForm({ refresh }) {
       const data = await res.json();
       alert(data.message || data.error);
 
+      setLoading(false);
+
       if (res.ok) {
         setName("");
-        setTimeout(() => refresh(), 200); // refresh list
+        setTimeout(() => refresh(), 200);
       }
     } catch (err) {
       console.error("Error adding team:", err);
       alert("Something went wrong while adding the team. Please try again.");
+      setLoading(false);
     }
   }
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-700">Add Team</h2>
+    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Create Team</h2>
 
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Team Name"
-        className="w-full p-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+        placeholder="Enter team name"
+        className="w-full p-3 mb-5 rounded-lg border border-gray-300 
+                   focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
       />
 
       <button
         onClick={addTeam}
-        className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+        disabled={loading}
+        className={`w-full py-3 rounded-lg text-white font-semibold shadow-md transition-all ${
+          loading
+            ? "bg-blue-300 cursor-not-allowed"
+            : "bg-blue-500 hover:bg-blue-600 hover:scale-[1.02]"
+        }`}
       >
-        Add Team
+        {loading ? "Creating Team..." : "Add Team"}
       </button>
     </div>
   );

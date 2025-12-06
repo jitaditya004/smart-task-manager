@@ -1,98 +1,138 @@
+// backend/controllers/userController.js
 const db = require("../config/db");
 
 // 🧠 GET USERS
 exports.getUsers = async (req, res) => {
   try {
-    const { id, role } = req.user; // from JWT token
+    const { id, role } = req.user;
 
     let query, params;
 
     if (role === "admin") {
-      // Admin can see everyone
-      query = "SELECT id, username FROM users ORDER BY id ASC";
+      // Admin sees all users
+      query = `
+        SELECT id, username, role
+        FROM users
+        ORDER BY id ASC
+      `;
       params = [];
     } else {
-      // Normal user: only see their own created users and themselves
-      query = "SELECT id, username FROM users WHERE id = ? OR created_by = ? ORDER BY id ASC";
-      params = [id, id];
+      // Normal users only see themselves
+      query = `
+        SELECT id, username, role
+        FROM users
+        WHERE id = $1
+      `;
+      params = [id];
     }
 
-    const [results] = await db.query(query, params);
-    res.json(results);
+    const { rows } = await db.query(query, params);
+    return res.json(rows);
 
   } catch (err) {
     console.error("❌ Fetch Users Error:", err);
-    res.status(500).json({ success: false, error: "Failed to fetch users" });
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch users",
+    });
   }
 };
 
-// 🧠 ADD USER
+// 🧠 ADD USER (ADMIN ONLY)
 exports.addUser = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const { id, role } = req.user;
+    const { username, password, role } = req.body;
+    const { role: userRole } = req.user; // logged-in user role
+
+    // Only admin allowed
+    if (userRole !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admin can create new users",
+      });
+    }
 
     if (!username || !password) {
-      return res.status(400).json({ success: false, message: "Username and password required!" });
+      return res.status(400).json({
+        success: false,
+        message: "Username and password are required!",
+      });
     }
 
-    let query, params;
+    const query = `
+      INSERT INTO users (username, password, role)
+      VALUES ($1, $2, $3)
+    `;
 
-    if (role === "admin") {
-      // Admin can add anyone
-      query = "INSERT INTO users (username, password, created_by) VALUES (?, ?, ?)";
-      params = [username, password, id];
-    } else {
-      // Normal user can only create users under themselves
-      query = "INSERT INTO users (username, password, created_by) VALUES (?, ?, ?)";
-      params = [username, password, id];
-    }
+    await db.query(query, [username, password, role || "user"]);
 
-    await db.query(query, params);
-
-    res.json({ success: true, message: "✅ User added successfully" });
+    return res.json({
+      success: true,
+      message: "✅ User created successfully (admin)",
+    });
 
   } catch (err) {
     console.error("❌ Add User Error:", err);
 
-    if (err.code === "ER_DUP_ENTRY") {
-      return res.status(400).json({ success: false, message: "Username already exists!" });
+    if (err.code === "23505") {
+      return res.status(400).json({
+        success: false,
+        message: "Username already exists!",
+      });
     }
 
-    res.status(500).json({ success: false, error: "Failed to add user" });
+    return res.status(500).json({
+      success: false,
+      error: "Failed to add user",
+    });
   }
 };
 
-// 🧠 DELETE USER BY NAME
+// 🧠 DELETE USER BY NAME (ADMIN ONLY)
 exports.deleteUserByName = async (req, res) => {
   try {
     const { username } = req.body;
-    const { id, role } = req.user;
+    const { role } = req.user;
+
+    if (role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admin can delete users",
+      });
+    }
 
     if (!username) {
-      return res.status(400).json({ success: false, message: "Username is required!" });
+      return res.status(400).json({
+        success: false,
+        message: "Username is required!",
+      });
     }
 
-    let query, params;
+    const query = `
+      DELETE FROM users
+      WHERE username = $1
+    `;
 
-    if (role === "admin") {
-      query = "DELETE FROM users WHERE username=?";
-      params = [username];
-    } else {
-      query = "DELETE FROM users WHERE username=? AND created_by=?";
-      params = [username, id];
+    const result = await db.query(query, [username]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    const [result] = await db.query(query, params);
-
-    if (result.affectedRows === 0) {
-      return res.status(403).json({ success: false, message: "You are not authorized or user not found" });
-    }
-
-    res.json({ success: true, message: "✅ User deleted successfully" });
+    return res.json({
+      success: true,
+      message: "✅ User deleted successfully (admin)",
+    });
 
   } catch (err) {
     console.error("❌ Delete User Error:", err);
-    res.status(500).json({ success: false, error: "Failed to delete user" });
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to delete user",
+    });
   }
 };

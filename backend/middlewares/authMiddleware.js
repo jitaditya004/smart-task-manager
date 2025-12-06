@@ -1,25 +1,45 @@
+// backend/middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
-const SECRET_KEY = "your_secret_key_here"; // same key as in authRoutes.js
+require("dotenv").config();
+
+const SECRET_KEY = process.env.JWT_SECRET;
 
 function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return res.status(401).json({ message: "No token provided" });
-  }
-
-  const token = authHeader.split(" ")[1]; // format: "Bearer <token>"
-
-  if (!token) {
-    return res.status(401).json({ message: "Invalid token format" });
-  }
-
   try {
-    const decoded = jwt.verify(token, SECRET_KEY);
-    req.user = decoded; // attach user info (id, role, username)
-    next();
+    // 1️⃣ Read token from secure HttpOnly cookie
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required. Please login.",
+      });
+    }
+
+    // 2️⃣ Verify & decode token (ensures correct algorithm)
+    const decoded = jwt.verify(token, SECRET_KEY, {
+      algorithms: ["HS256"],
+    });
+
+    // 3️⃣ Attach user to request object
+    req.user = decoded;
+
+    return next();
+
   } catch (err) {
-    return res.status(403).json({ message: "Invalid or expired token" });
+    console.error("JWT Verification Error:", err);
+
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Session expired. Please log in again.",
+      });
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: "Invalid or malformed authentication token.",
+    });
   }
 }
 

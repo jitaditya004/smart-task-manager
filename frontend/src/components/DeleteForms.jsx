@@ -1,96 +1,141 @@
 import React, { useState } from "react";
 
-function DeleteForms({ refreshUsers, refreshTeams, fetchTasks }) {
+function DeleteForms({ role, refreshUsers, refreshTeams, fetchTasks }) {
   const [userName, setUserName] = useState("");
   const [teamName, setTeamName] = useState("");
 
-  async function deleteUser() {
+  const [loadingUser, setLoadingUser] = useState(false);
+  const [loadingTeam, setLoadingTeam] = useState(false);
 
+  // -------------------------------------------------------------
+  // 🗑 DELETE USER (ADMIN ONLY)
+  // -------------------------------------------------------------
+  async function deleteUser() {
     if (!userName.trim()) {
       alert("Username cannot be empty!");
       return;
-    }    
-    
-    const res = await fetch("/users/deleteUserByName", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    }
+
+    if (!window.confirm(`Are you sure you want to delete user "${userName}"?`)) {
+      return;
+    }
+
+    setLoadingUser(true);
+
+    const res = await fetch("/users/delete", {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ username: userName }),
     });
+
     const data = await res.json();
-    alert(data.message);
+    alert(data.message || data.error);
+    setLoadingUser(false);
 
     if (res.ok) {
-    setUserName(""); // clear the input
-
-    // ✅ Add a short delay before refetch
-    setTimeout(() => {
+      setUserName("");
       refreshUsers();
-      fetchTasks(); // also refresh tasks since deleted user might have assigned tasks
-    }, 200);
-  }
+      fetchTasks();
+    }
   }
 
+  // -------------------------------------------------------------
+  // 🗑 DELETE TEAM (Normal users CAN delete IF they created it)
+  // -------------------------------------------------------------
   async function deleteTeam() {
-
     if (!teamName.trim()) {
       alert("Team name cannot be empty!");
       return;
-    }    
+    }
 
-    const res = await fetch("/teams/deleteTeamByName", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    if (!window.confirm(`Delete team "${teamName}"?`)) {
+      return;
+    }
+
+    setLoadingTeam(true);
+
+    const res = await fetch("/teams/delete", {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ name: teamName }),
     });
-    
+
     const data = await res.json();
-    alert(data.message);
+    alert(data.message || data.error);
+    setLoadingTeam(false);
 
     if (res.ok) {
-    setTeamName(""); // clear field
-
-    setTimeout(() => {
+      setTeamName("");
       refreshTeams();
-    }, 200);
-  }
+    }
   }
 
   return (
-<div className="p-4 bg-gray-50 rounded-lg shadow-md">
-  {/* Delete User Section */}
-  <h2 className="text-xl font-semibold mb-4 text-gray-700">Delete User</h2>
-  <input
-    value={userName}
-    onChange={(e) => setUserName(e.target.value)}
-    placeholder="Username"
-    className="w-full p-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-  />
-  <button
-    onClick={deleteUser}
-    className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors mb-6"
-  >
-    Delete User
-  </button>
+    <div className="p-6 bg-white rounded-2xl shadow-xl border border-gray-200">
 
-  {/* Delete Team Section */}
-  <h2 className="text-xl font-semibold mb-4 text-gray-700">Delete Team</h2>
-  <input
-    value={teamName}
-    onChange={(e) => setTeamName(e.target.value)}
-    placeholder="Team Name"
-    className="w-full p-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
-  />
-  <button
-    onClick={deleteTeam}
-    className="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
-  >
-    Delete Team
-  </button>
-</div>
+      {/* DELETE USER (ADMIN ONLY) */}
+      {role === "admin" && (
+        <>
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">
+            Delete User
+          </h2>
 
+          <div className="mb-6">
+            <input
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Enter username"
+              className="w-full p-3 mb-3 border border-gray-300 rounded-lg"
+            />
+
+            <button
+              onClick={deleteUser}
+              disabled={loadingUser}
+              className={`w-full py-3 rounded-lg text-white font-semibold shadow-md transition-all ${
+                loadingUser
+                  ? "bg-red-300 cursor-not-allowed"
+                  : "bg-red-500 hover:bg-red-600"
+              }`}
+            >
+              {loadingUser ? "Deleting..." : "Delete User"}
+            </button>
+          </div>
+
+          <hr className="my-6 border-gray-300" />
+        </>
+      )}
+
+      {/* DELETE TEAM (Everyone sees — backend controls permission) */}
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">Delete Team</h2>
+
+      <div>
+        <input
+          value={teamName}
+          onChange={(e) => setTeamName(e.target.value)}
+          placeholder="Enter team name"
+          className="w-full p-3 mb-3 border border-gray-300 rounded-lg"
+        />
+
+        <button
+          onClick={deleteTeam}
+          disabled={loadingTeam}
+          className={`w-full py-3 rounded-lg text-white font-semibold shadow-md transition-all ${
+            loadingTeam
+              ? "bg-red-300 cursor-not-allowed"
+              : "bg-red-500 hover:bg-red-600"
+          }`}
+        >
+          {loadingTeam ? "Deleting..." : "Delete Team"}
+        </button>
+      </div>
+    </div>
   );
 }
 
 export default DeleteForms;
-
-

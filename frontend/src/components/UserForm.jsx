@@ -1,67 +1,84 @@
 import React, { useState } from "react";
 
-function UserForm({ refresh }) {
+function UserForm({ refresh, user }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // 🚫 If the logged-in user is NOT admin, hide this entire UI
+  if (user?.role !== "admin") {
+    return null; // completely hide form for non-admins
+  }
 
-  //!password.trim(),,,,add later
   async function addUser() {
-    if(!username.trim() ){
+    if (!username.trim() || !password.trim()) {
       alert("Username and password cannot be empty!");
       return;
     }
 
-    
     try {
-      const res = await fetch("/users/addUser", {
+      setLoading(true);
+
+      const res = await fetch("/users/add", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
       alert(data.message || data.error);
 
+      setLoading(false);
+
       if (res.ok) {
         setUsername("");
         setPassword("");
-
-        // Small delay before re-fetching
-        setTimeout(() => {
-          refresh();
-        }, 200);
+        setTimeout(refresh, 200);
       }
     } catch (err) {
       console.error("Error adding user:", err);
       alert("Something went wrong while adding user.");
+      setLoading(false);
     }
   }
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-700">Add User</h2>
-      
+    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Create User</h2>
+
+      {/* Username */}
       <input
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="Username"
-        className="w-full p-2 mb-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full p-3 mb-4 rounded-lg border border-gray-300 
+                   focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
       />
-      
+
+      {/* Password */}
       <input
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
-        className="w-full p-2 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="w-full p-3 mb-6 rounded-lg border border-gray-300 
+                   focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
       />
-      
+
+      {/* Button */}
       <button
         onClick={addUser}
-        className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
+        disabled={loading}
+        className={`w-full py-3 rounded-lg text-white font-semibold transition-all shadow-md ${
+          loading
+            ? "bg-blue-300 cursor-not-allowed"
+            : "bg-blue-500 hover:bg-blue-600 hover:scale-[1.02]"
+        }`}
       >
-        Add User
+        {loading ? "Creating User..." : "Add User"}
       </button>
     </div>
   );

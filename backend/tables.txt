@@ -1,0 +1,78 @@
+-- 1) create an enum type for status
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_status') THEN
+    CREATE TYPE task_status AS ENUM ('pending', 'in-progress', 'done');
+  END IF;
+END$$;
+
+-- 2) create the tasks table
+CREATE TABLE IF NOT EXISTS tasks (
+  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  title varchar(255) NOT NULL,
+  description text,
+  assigned_to integer,        -- user id (nullable)
+  created_by integer,         -- user id (nullable)
+  team_id integer,            -- team id (nullable)
+  status task_status DEFAULT 'pending',
+  deadline date,
+  created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3) indexes (equivalent to your MySQL indexes)
+CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks (assigned_to);
+CREATE INDEX IF NOT EXISTS idx_tasks_team_id     ON tasks (team_id);
+
+-- OPTIONAL: add foreign keys if you have users and teams tables
+-- Uncomment and adjust the referenced table/column names to match your schema:
+-- ALTER TABLE tasks
+--   ADD CONSTRAINT fk_tasks_assigned_to
+--     FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL;
+-- ALTER TABLE tasks
+--   ADD CONSTRAINT fk_tasks_created_by
+--     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL;
+-- ALTER TABLE tasks
+--   ADD CONSTRAINT fk_tasks_team_id
+--     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL;
+
+
+
+
+CREATE TABLE IF NOT EXISTS your_table_name (
+  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name varchar(100) NOT NULL,
+  created_by integer
+);
+
+
+
+
+
+-- 1) create an enum type for role (if it doesn't already exist)
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE user_role AS ENUM ('user', 'admin');
+  END IF;
+END$$;
+
+-- 2) create the users table
+CREATE TABLE IF NOT EXISTS users (
+  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  username varchar(50) NOT NULL,
+  email varchar(255),
+  password varchar(255),
+  role user_role DEFAULT 'user',
+  created_by integer
+);
+
+-- 3) create non-unique indexes like your MySQL structure had
+CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+CREATE INDEX IF NOT EXISTS idx_users_email    ON users (email);
+
+
+
+
+
+
+

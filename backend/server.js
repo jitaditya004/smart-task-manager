@@ -1,40 +1,59 @@
+// backend/server.js
 const express = require("express");
-const bodyParser = require("body-parser");
 const path = require("path");
-const cors = require("cors"); // ✅ Allow React frontend
-const db = require("./config/db.js");
-const { verifyToken } = require("./middlewares/authMiddleware")
+const cors = require("cors");
+const cookieParser = require("cookie-parser"); // ⭐ REQUIRED for HttpOnly cookies
+require("dotenv").config();
 
 const app = express();
 
-// ✅ Middleware
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
-// ✅ Serve static files (if using React build)
-app.use(express.static(path.join(__dirname, "public")));
-
-// ✅ Routes
-//const authRoutes = require("./routes/authRoutes");
-const authRoutes = require(path.join(__dirname, "routes", "authRoutes"));
+// Load Routes
+const authRoutes = require("./routes/authRoutes");
 const taskRoutes = require("./routes/tasks");
 const userRoutes = require("./routes/users");
 const teamRoutes = require("./routes/teams");
 
+// ------------------------------------------------------
+// GLOBAL MIDDLEWARES
+// ------------------------------------------------------
 
-// ✅ Route mounting
-app.use("/auth", authRoutes);  // ➤ /auth/register, /auth/login //remains public
-app.use("/tasks",verifyToken, taskRoutes); // ➤ /tasks, /tasks/add, /tasks/update, etc.
-app.use("/users",verifyToken, userRoutes);
-app.use("/teams",verifyToken, teamRoutes);
+// CORS for frontend communication + cookies
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL, // e.g. http://localhost:5173
+    credentials: true,              // ⭐ MUST for cookie auth
+  })
+);
 
-// ✅ Default route
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ⭐ Enable parsing HttpOnly cookies
+app.use(cookieParser());
+
+// Serve static files if needed
+app.use(express.static(path.join(__dirname, "public")));
+
+// ------------------------------------------------------
+// ROUTES
+// ------------------------------------------------------
+
+// Public route (signup, login)
+app.use("/auth", authRoutes);
+
+// Protected routes → they include verifyToken INSIDE each route file
+app.use("/tasks", taskRoutes);
+app.use("/users", userRoutes);
+app.use("/teams", teamRoutes);
+
 app.get("/", (req, res) => {
   res.send("🚀 Task Manager API is running...");
 });
 
-// ✅ Start server
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+// ------------------------------------------------------
+// START SERVER
+// ------------------------------------------------------
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});

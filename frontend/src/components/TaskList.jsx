@@ -4,14 +4,15 @@ function TaskList({ tasks, refresh }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
+  // ----------------------------
+  // 🔄 Update Task Status
+  // ----------------------------
   async function updateStatus(id, status) {
-    const token = localStorage.getItem("token");
-
     await fetch("/tasks/update", {
-      method: "POST",
+      method: "PUT",
+      credentials: "include", // ⭐ REQUIRED for HttpOnly cookies
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ id, status }),
     });
@@ -19,14 +20,17 @@ function TaskList({ tasks, refresh }) {
     refresh();
   }
 
+  // ----------------------------
+  // 🗑 Delete Task
+  // ----------------------------
   async function deleteTask(id) {
-    const token = localStorage.getItem("token");
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
 
     await fetch("/tasks/delete", {
-      method: "POST",
+      method: "DELETE",
+      credentials: "include", // ⭐ send cookie for auth
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ id }),
     });
@@ -34,7 +38,9 @@ function TaskList({ tasks, refresh }) {
     refresh();
   }
 
-  // 🧠 Filtered task list
+  // ----------------------------
+  // 🧠 Search + Filter Logic
+  // ----------------------------
   const filteredTasks = tasks.filter((t) => {
     const matchesSearch =
       t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,23 +53,23 @@ function TaskList({ tasks, refresh }) {
   });
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-700">Tasks</h2>
+    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">Task List</h2>
 
-      {/* 🔍 Search and Filter */}
-      <div className="flex flex-col md:flex-row gap-3 mb-4">
+      {/* 🔍 Search + Filter Section */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <input
           type="text"
-          placeholder="Search by title or description..."
+          placeholder="Search tasks..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 border p-2 rounded focus:ring-2 focus:ring-blue-400"
+          className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 shadow-sm"
         />
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border p-2 rounded focus:ring-2 focus:ring-blue-400"
+          className="p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 shadow-sm"
         >
           <option value="All">All</option>
           <option value="pending">Pending</option>
@@ -71,78 +77,111 @@ function TaskList({ tasks, refresh }) {
         </select>
       </div>
 
-      <ul className="space-y-3">
+      {/* ========================== */}
+      {/* 📝 Task Cards */}
+      {/* ========================== */}
+      <div className="space-y-4">
         {filteredTasks.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center">
-            No tasks match your search or filter.
+          <p className="text-gray-500 text-center text-sm">
+            No tasks match your search.
           </p>
         ) : (
           filteredTasks.map((t) => {
             const deadline = t.deadline
-              ? new Date(t.deadline).toLocaleString("en-GB", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "N/A";
+              ? new Date(t.deadline).toLocaleDateString("en-GB")
+              : "No deadline";
+
+            const isDone = t.status === "done";
 
             return (
-              <li
+              <div
                 key={t.id}
-                className="p-3 bg-white rounded-md shadow-sm border border-gray-200 flex flex-col md:flex-row md:items-center md:justify-between"
+                className={`p-4 bg-gradient-to-br from-gray-50 to-white border border-gray-200 
+                            rounded-xl shadow-sm hover:shadow-md transition-all
+                            border-l-8 
+                            ${
+                              t.priority === "urgent"
+                                ? "border-red-600"
+                                : t.priority === "high"
+                                ? "border-orange-500"
+                                : t.priority === "medium"
+                                ? "border-blue-600"
+                                : "border-gray-400"
+                            }`}
               >
-                <div className="text-gray-700 text-sm">
-                  <span className="font-semibold">{t.id}</span> - {t.title} ::{" "}
-                  {t.description}
-                  <span className="block md:inline">
-                    {" "}
-                    | Assigned: {t.assigned_to || "N/A"}
-                  </span>
-                  <span className="block md:inline">
-                    {" "}
-                    | Status: {t.status}
-                  </span>
-                  <span className="block md:inline">
-                    {" "}
-                    | Deadline: {deadline}
-                  </span>
-                </div>
 
-                <div className="mt-2 md:mt-0 flex gap-2">
-                  {/* 🟢 Toggle Status */}
-                  <button
-                    onClick={() =>
-                      updateStatus(
-                        t.id,
-                        t.status === "done" ? "pending" : "done"
-                      )
-                    }
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      t.status === "done"
-                        ? "bg-yellow-500 text-white hover:bg-yellow-600"
-                        : "bg-green-500 text-white hover:bg-green-600"
-                    }`}
-                  >
-                    {t.status === "done"
-                      ? "↩️ Mark as Pending"
-                      : "✅ Mark as Done"}
-                  </button>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
 
-                  {/* 🔴 Delete Task */}
-                  <button
-                    onClick={() => deleteTask(t.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors text-sm"
-                  >
-                    ❌ Delete
-                  </button>
+                  {/* 🔹 TASK DETAILS */}
+                  <div className="text-gray-700 ">
+                    <div className="text-lg font-semibold">{t.title}</div>
+                    <div className="text-xs font-semibold text-gray-600 mt-1">
+                      Priority: {t.priority.toUpperCase()}
+                    </div>
+
+                    <div className="text-sm opacity-80 mb-1 break-words whitespace-normal">
+                      {t.description}
+                    </div>
+
+
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-600 mt-1">
+
+                      <span>
+                        <strong>Assigned:</strong> {t.assigned_to || "N/A"}
+                      </span>
+
+                      {/* 🔖 Status Badge */}
+                      <span
+                        className={`px-2 py-1 rounded-md text-white ${
+                          isDone ? "bg-green-500" : "bg-yellow-500"
+                        }`}
+                      >
+                        {isDone ? "Completed" : "Pending"}
+                      </span>
+
+                      <span>
+                        <strong>Deadline:</strong> {deadline}
+                      </span>
+                    </div>
+                  </div>
+
+                  
+
+                  {/* 🔘 ACTION BUTTONS */}
+                  <div className="flex gap-2">
+
+                    {/* Toggle Status */}
+                    <button
+                      onClick={() =>
+                        updateStatus(
+                          t.id,
+                          isDone ? "pending" : "done"
+                        )
+                      }
+                      className={`px-4 py-2 text-sm rounded-lg font-medium text-white shadow transition-all ${
+                        isDone
+                          ? "bg-yellow-500 hover:bg-yellow-600"
+                          : "bg-green-500 hover:bg-green-600"
+                      }`}
+                    >
+                      {isDone ? "Mark Pending" : "Mark Done"}
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      onClick={() => deleteTask(t.id)}
+                      className="px-4 py-2 text-sm rounded-lg font-medium bg-red-500 hover:bg-red-600 text-white shadow transition-all"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
                 </div>
-              </li>
+              </div>
             );
           })
         )}
-      </ul>
+      </div>
     </div>
   );
 }
