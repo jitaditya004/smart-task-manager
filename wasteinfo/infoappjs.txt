@@ -1,0 +1,539 @@
+🟢 Why do we use async and await?
+
+Because JavaScript is single-threaded (it does one thing at a time).
+If we had to wait for slow operations like database queries, API calls, or file reads synchronously, the whole program would freeze until the operation finished.
+
+👉 To avoid this, JS uses asynchronous code with Promises.
+But writing .then().catch() chains everywhere is messy.
+
+That’s where async/await comes in:
+
+async lets you declare a function that can use await.
+
+await pauses the function until the Promise resolves, without blocking the whole program.
+
+
+🟢 Example without async/await (using Promises directly):
+fetch("/tasks")
+  .then(res => res.json())
+  .then(data => {
+    console.log(data);
+  })
+  .catch(err => {
+    console.error(err);
+  });
+
+
+Kinda messy, right? You have to keep chaining .then().
+
+🟢 Example with async/await:
+async function getTasks() {
+  try {
+    const res = await fetch("/tasks"); // wait until fetch is done
+    const data = await res.json();     // wait until body is parsed
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+
+Much cleaner ✅
+Looks like normal synchronous code, but actually still async.
+
+🟢 Key points:
+
+async before a function = it will always return a Promise.
+
+await only works inside async functions.
+
+await makes JS pause that function until the Promise resolves, but it doesn’t block other code from running.
+
+🟢 Analogy
+
+Imagine you order pizza 🍕:
+
+With normal Promises:
+→ “When the pizza is ready, call me back (.then()).”
+
+With async/await:
+→ “I’ll wait right here (await) for the pizza, but meanwhile the restaurant can still cook for other customers.”
+
+👉 So we use async/await to write asynchronous code that looks like synchronous code — easier to read, debug, and maintain.
+
+===================================================================================
+
+
+🔹 What is a Promise?
+
+A Promise in JavaScript is just an object that represents a value that will be available later.
+It’s like saying:
+
+“I don’t have the result right now, but I promise I’ll give it to you in the future — either success or failure.”
+
+🔹 Why do we need Promises?
+
+JavaScript is single-threaded (it does one thing at a time).
+If you try to do something slow like:
+
+Fetching data from an API 🌍
+
+Reading a file from disk 📂
+
+Querying a database 💾
+
+… and you do it synchronously, the whole program freezes until it’s done.
+That’s bad 😬 → users can’t click, scroll, or interact.
+
+So instead, JS uses asynchronous code → it starts the operation, and when it’s done, it calls you back with the result.
+
+At first, this was handled by callbacks:
+
+getData(function(result) {
+  console.log(result);
+});
+
+
+But callbacks get messy when you chain multiple operations (callback hell).
+
+That’s why Promises were introduced — a cleaner way to handle async work.
+
+🔹 How a Promise works
+
+A Promise can be in 3 states:
+
+Pending → still waiting for result.
+
+Fulfilled (resolved) → got the result successfully.
+
+Rejected → something went wrong.
+
+Example:
+
+const myPromise = new Promise((resolve, reject) => {
+  setTimeout(() => {
+    resolve("✅ Data received"); // success after 2 sec
+    // reject("❌ Error occurred"); // failure
+  }, 2000);
+});
+
+
+Using it:
+
+myPromise
+  .then(result => console.log(result))   // if resolved
+  .catch(error => console.log(error));   // if rejected
+
+
+Output after 2 seconds:
+
+✅ Data received
+
+🔹 Why use Promises?
+
+Handle async tasks without blocking → UI stays responsive.
+
+Avoid callback hell → cleaner syntax.
+
+Chainable → you can do one thing after another (.then().then().catch()).
+
+Works perfectly with async/await → modern, readable code.
+
+✅ Quick analogy:
+A Promise is like ordering food at a restaurant:
+
+The order ticket = Promise (pending).
+
+Food arrives = Promise resolved (fulfilled).
+
+Kitchen runs out of ingredients = Promise rejected (failed).
+
+============================================================
+
+🟢 1. What does fetch() do?
+
+fetch(url, options?) is a built-in function in the browser (and Node).
+
+It sends an HTTP request (GET, POST, PUT, DELETE, etc.) to a server.
+
+It returns a Promise that resolves to a Response object when the server replies.
+
+Example:
+
+const res = await fetch("/tasks");
+
+
+Here:
+
+/tasks is the endpoint your Express server created (app.get("/tasks", ...)).
+
+fetch sends a GET request to your server at /tasks.
+
+The result is a Response object (not the actual data yet).
+
+So at this point, res is like:
+
+Response {
+  status: 200,
+  headers: {...},
+  body: ReadableStream
+}
+
+🟢 2. What does res.json() do?
+
+The server usually replies with JSON text. Example reply:
+
+[
+  { "id": 1, "title": "Do homework", "status": "pending" },
+  { "id": 2, "title": "Cook dinner", "status": "done" }
+]
+
+
+But when fetch gives you res, the body is still raw — it’s like a stream of text.
+You need to parse it into usable JavaScript objects.
+
+That’s what res.json() does:
+
+Reads the body of the Response.
+
+Parses the JSON text → JavaScript object/array.
+
+Returns a Promise with that object.
+
+Example:
+
+const data = await res.json();
+console.log(data);
+
+
+Now data will be:
+
+[
+  { id: 1, title: "Do homework", status: "pending" },
+  { id: 2, title: "Cook dinner", status: "done" }
+]
+
+🟢 Together:
+const res = await fetch("/tasks");  // Send GET request -> Promise<Response>
+const data = await res.json();      // Parse JSON body -> Promise<JS object>
+
+🟢 Analogy:
+
+fetch() = ordering food 🍔 (server brings you a wrapped package).
+
+res.json() = unwrapping the package 📦 so you can actually eat the food.
+
+⚡️ So in short:
+
+fetch(): Sends request → returns Promise of Response.
+
+res.json(): Parses response body → returns Promise of data (object/array).
+
+
+==========================================================================
+
+
+🟢 How await works
+
+When you write:
+
+async function getData() {
+  console.log("Start");
+  const res = await fetch("/tasks");
+  console.log("After fetch");
+}
+
+
+Here’s what happens:
+
+"Start" is logged immediately.
+
+fetch("/tasks") runs → it returns a Promise.
+
+await sees the Promise and says:
+
+“Pause this function (getData) right here until the Promise resolves.”
+
+⚠️ Important: Only this function pauses, not the whole program.
+JavaScript moves on and keeps running other code in your app.
+
+Once the Promise resolves (server sends a response), res gets the value, and the function continues to "After fetch".
+
+🟢 So is the async function stopped?
+
+Yes — but only paused at that line, not completely stopped.
+Think of it like:
+
+The function is waiting at a traffic light 🚦.
+
+Other cars (other code) keep moving on different roads.
+
+When the light turns green (Promise resolves), the function continues.
+
+
+==================================================================================
+
+
+🟢 1. method
+
+This is the HTTP method → tells the server what kind of action you want.
+Common ones:
+
+GET → fetch data (default for fetch).
+
+POST → send new data.
+
+PUT → update existing data.
+
+DELETE → delete something.
+
+Example:
+
+fetch("/tasks", { method: "GET" });
+fetch("/add",   { method: "POST" });
+
+
+📬 Analogy: It’s like the verb in your sentence — "get me this," "add this," "delete that."
+
+🟢 2. headers
+
+Headers are extra info you send along with the request, like metadata.
+Common ones:
+
+"Content-Type": "application/json" → tells server “I’m sending JSON data.”
+
+"Authorization": "Bearer token" → used for login/security.
+
+"Accept": "application/json" → tells server “I want JSON back.”
+
+Example:
+
+fetch("/add", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer 12345"
+  }
+});
+
+
+📬 Analogy: Like writing info on the envelope: language, format, ID card, etc.
+
+🟢 3. body
+
+This is the actual data you’re sending with the request.
+👉 Only used with methods like POST, PUT, PATCH (not GET).
+
+Example (sending JSON):
+
+fetch("/add", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    title: "Do homework",
+    description: "Math exercises"
+  })
+});
+
+
+Here, the body is:
+
+{
+  "title": "Do homework",
+  "description": "Math exercises"
+}
+
+
+📬 Analogy: This is the letter inside the envelope.
+
+🔹 Full Picture
+await fetch("/add", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ title: "New Task" })
+});
+
+
+method = how you’re talking to server (GET/POST/PUT/DELETE).
+
+headers = extra instructions/metadata.
+
+body = actual content/data you’re sending.
+
+
+================================================================================
+
+
+🟢 What does JSON.stringify do?
+
+It converts a JavaScript object/array into a JSON string.
+
+Example:
+
+const obj = { name: "Alice", age: 20 };
+
+const jsonStr = JSON.stringify(obj);
+
+console.log(jsonStr);
+
+
+Output:
+
+{"name":"Alice","age":20}
+
+🟢 Why do we need it?
+
+When you use fetch with body, the HTTP protocol expects text (or binary) — not raw JS objects.
+So you must convert your object into a JSON string before sending.
+
+That’s why we write:
+
+fetch("/add", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ title: "New Task" })
+});
+
+
+Without stringify, it would send [object Object] or crash, and the server wouldn’t understand.
+
+🟢 Opposite of stringify
+
+When the server sends back JSON (a string), we use res.json() to parse it back into a JavaScript object.
+
+👉 So:
+
+JSON.stringify() = object → string (before sending).
+
+res.json() (or JSON.parse()) = string → object (after receiving).
+
+🟢 Analogy
+
+Imagine you want to send a gift 🎁 by mail.
+
+In JavaScript, your gift is an object { title: "New Task" }.
+
+Before mailing, you pack it into a box → JSON.stringify.
+
+When the receiver gets it, they unpack the box → res.json()
+
+================================================================================
+
+
+🟢 What fetchTasks() does
+
+Your function:
+
+async function fetchTasks() {
+  const res = await fetch("/tasks");
+  const tasks = await res.json();
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+  tasks.forEach(t => {
+    // build <li> and buttons for each task
+  });
+}
+
+
+It calls your backend (/tasks route in Express).
+
+Gets the latest task list from the database.
+
+Clears the old HTML (list.innerHTML = "").
+
+Loops through all tasks and rebuilds the <li> elements with buttons.
+
+👉 So this function basically refreshes the task list shown on the webpage.
+
+🟢 Why call it again after a button action?
+
+Look at your Done button:
+
+doneBtn.onclick = async () => {
+  await fetch("/update", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: t.id, status: 'done' })
+  });
+  fetchTasks(); // 👈 refresh list after update
+};
+
+
+And your Delete button:
+
+delBtn.onclick = async () => {
+  await fetch("/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id: t.id })
+  });
+  fetchTasks(); // 👈 refresh list after delete
+};
+
+🔹 Reason
+
+When you update or delete a task:
+
+The database changes.
+
+But your page doesn’t magically know about that change.
+
+So you need to fetch the fresh list again.
+
+That’s why you call fetchTasks() — it reloads the updated tasks from the server and redraws the list on the page.
+
+
+=========================================================================
+
+🟢 Why no semicolon after body?
+
+Because body: ... is just a property inside a JavaScript object.
+And in JS objects, properties are separated by commas, not semicolons.
+
+
+=====================================================
+
+"en-GB" is a locale code:
+
+"en" → English
+
+"GB" → Great Britain (United Kingdom)
+
+So "en-GB" tells JavaScript:
+
+"Format this date/time using British English rules."
+
+
+====================================================================
+
+
+
+    const d = new Date(t.deadline);
+Converts the deadline string (from MySQL, like "2025-09-01T00:00:00.000Z") into a JavaScript Date object.
+
+Now JS can format it in a readable way.
+
+js
+Copy code
+        deadlineFormatted = d.toLocaleString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+Formats the date into a nice readable string, using British English (DD/MM/YYYY HH:MM).
+
+Example: "17/09/2025, 14:30".
+
+Stores it in deadlineFormatted.
+
+js
+Copy code
+
+
+
+
+
+

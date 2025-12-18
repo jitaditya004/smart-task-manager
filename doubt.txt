@@ -1,0 +1,7 @@
+how does the button become darker when i move my mouse over them
+why better state sync?
+when to use flex and when to use grid
+
+mysql2 and mysql2 promise difference
+
+i forgot to add verifytoken in app.jsx and server.js

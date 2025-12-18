@@ -1,0 +1,997 @@
+🔹 Function to get tasks
+async function fetchTasks() {
+
+
+Declares an async function (so you can use await inside).
+
+This function will fetch all tasks from the server and display them in the page.
+
+  const res = await fetch("/tasks");
+
+
+fetch("/tasks") sends a GET request to your backend API (/tasks).
+
+await means: pause until the server responds.
+
+res will be the HTTP Response object.
+
+  const tasks = await res.json();
+
+
+Reads the response body as JSON.
+
+Now tasks is a JavaScript array of objects (each task with id, title, etc.).
+
+  const list = document.getElementById("taskList");
+  list.innerHTML = "";
+
+
+Finds the <ul> or <ol> element with id="taskList".
+
+Clears its contents ("") before adding new tasks (so the list refreshes).
+
+🔹 Loop through tasks
+  tasks.forEach(t => {
+
+
+Loops through each task object (t) in the tasks array.
+
+    const li = document.createElement("li");
+
+
+Creates a new <li> element in the DOM (a list item).
+
+    li.textContent = `${t.id}. ${t.title} | ${t.description} | Assigned: ${t.assigned_to || 'N/A'} | Status: ${t.status} | Deadline: ${t.deadline || 'N/A'}`;
+
+
+Sets the text inside <li> with template literals.
+
+${t.assigned_to || 'N/A'} means:
+
+If assigned_to exists → show it.
+
+Otherwise → show "N/A".
+
+🔹 Add "Done" button (if task not done yet)
+    if (t.status !== 'done') {
+
+
+Only show a "✔ Done" button if the task’s status is not already "done".
+
+      const doneBtn = document.createElement("button");
+      doneBtn.textContent = "✔ Done";
+
+
+Create a <button> with label "✔ Done".
+
+      doneBtn.onclick = async () => {
+        await fetch("/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: t.id, status: 'done' })
+        });
+        fetchTasks();
+      };
+
+
+When button is clicked:
+
+Send a POST request to /update with JSON:
+
+{ "id": t.id, "status": "done" }
+
+
+After updating, call fetchTasks() again to refresh the list.
+
+      li.appendChild(doneBtn);
+    }
+
+
+Adds the button inside the <li>.
+
+🔹 Add "Delete" button
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "❌ Delete";
+
+
+Create a button labeled "❌ Delete".
+
+    delBtn.onclick = async () => {
+      await fetch("/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: t.id })
+      });
+      fetchTasks();
+    };
+
+
+When clicked:
+
+Send POST request to /delete with { "id": t.id }.
+
+Refresh the task list by calling fetchTasks() again.
+
+    li.appendChild(delBtn);
+
+
+Add the delete button to the <li>.
+
+    list.appendChild(li);
+  });
+}
+
+
+Finally, add the whole <li> (with task text + buttons) to the task list in the DOM.
+
+🔹 Function to add new task
+async function addTask() {
+
+
+Declares another async function for adding tasks.
+
+  const title = document.getElementById("title").value;
+  const description = document.getElementById("description").value;
+  const assigned_to = document.getElementById("assigned_to").value || null;
+  const team_id = document.getElementById("team_id").value || null;
+  const deadline = document.getElementById("deadline").value || null;
+
+
+Reads values from <input> fields in your HTML form.
+
+If no value entered, it sets to null.
+
+  await fetch("/add", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, description, assigned_to, team_id, deadline })
+  });
+
+
+Sends a POST request to /add.
+
+Includes task details in JSON format.
+
+  fetchTasks();
+}
+
+
+Refresh the task list after adding a new task.
+
+🔹 Initial call
+fetchTasks();
+
+
+When page loads, it calls fetchTasks() so the user immediately sees tasks from the database.
+
+✅ So basically:
+
+fetchTasks() = GET all tasks + show them.
+
+addTask() = POST a new task.
+
+Inside fetchTasks(), each <li> has buttons to update (done) or delete a task
+
+
+
+
+
+
+====================================================================================
+
+
+
+🟢 async and await in JavaScript
+
+They are used for handling asynchronous code — code that doesn’t finish immediately (like fetching data from a server, reading a file, or waiting for a timer).
+
+🔹 The problem before async/await
+
+JavaScript normally runs synchronously (line by line).
+But some tasks (like fetching from /tasks) take time.
+If JS waited (blocked), the whole browser would freeze until the request finished ❌.
+
+So we use asynchronous operations → JS continues running while waiting for the slow task to finish.
+
+
+
+🔹 async function
+
+If you mark a function with async, it automatically returns a Promise.
+Example:
+
+async function greet() {
+  return "Hello!";
+}
+
+greet().then(msg => console.log(msg)); // Output: Hello!
+
+
+So async is like saying:
+👉 "This function will run asynchronously and return a Promise."
+
+
+
+
+
+🔹 await
+
+The await keyword can only be used inside an async function.
+It pauses the function execution until the Promise is done.
+
+Example:
+
+function delay() {
+  return new Promise(resolve => {
+    setTimeout(() => resolve("Done!"), 2000);
+  });
+}
+
+async function test() {
+  console.log("Start");
+  const result = await delay(); // waits 2 seconds
+  console.log(result); // "Done!"
+  console.log("End");
+}
+
+test();
+
+
+Output:
+
+Start
+(wait 2 seconds)
+Done!
+End
+
+
+Without await, you’d need messy .then() callbacks.
+
+
+=================================================================================
+
+
+
+
+🔹 1. Synchronous vs Asynchronous
+🟢 Synchronous
+
+Code runs line by line, one after the other.
+
+JS waits for each line to finish before moving on.
+
+Example:
+
+console.log("A");
+console.log("B");
+console.log("C");
+
+
+Output (always in order):
+
+A
+B
+C
+
+🔴 Asynchronous
+
+Some tasks (like fetching from a server, reading a file, timers) take time.
+
+Instead of blocking everything, JS says:
+👉 "Start this task, I’ll continue with other code, and when you’re done, let me know."
+
+Example:
+
+console.log("A");
+
+setTimeout(() => {
+  console.log("B"); // runs after 2 seconds
+}, 2000);
+
+console.log("C");
+
+
+Output:
+
+A
+C
+B   (after 2 seconds)
+
+
+➡️ Notice: JS didn’t wait for B. It jumped to C immediately. That’s asynchronous.
+
+
+
+
+
+
+
+🔹 2. Promise
+
+A Promise is an object in JS that represents a value that may be available now, later, or never.
+
+Pending → The task hasn’t finished yet.
+
+Resolved (Fulfilled) → Task finished successfully.
+
+Rejected → Task failed.
+
+Example:
+
+let promise = new Promise((resolve, reject) => {
+  let success = true;
+  
+  if (success) {
+    resolve("Task completed!");
+  } else {
+    reject("Task failed!");
+  }
+});
+
+promise.then(result => console.log(result))
+       .catch(error => console.log(error));
+
+
+Output:
+
+Task completed!
+
+
+
+
+
+✅ Summary
+
+Synchronous → line by line, blocking.
+
+Asynchronous → non-blocking, lets JS continue while waiting.
+
+Promise → an object that represents a future result (success or failure).
+
+resolve() → marks a Promise as "done successfully" and gives back a value.
+
+reject() → marks a Promise as "failed" with an error.
+
+
+
+
+
+
+🔹 resolve(value)
+
+Marks the Promise as fulfilled.
+
+The value you pass goes to the .then(...) or await.
+
+Example:
+
+const p1 = new Promise(resolve => {
+  resolve("Hello world");
+});
+
+p1.then(result => console.log(result));
+// Output: Hello world
+
+
+Here "Hello world" is the value of the resolved Promise.
+But it could be anything:
+
+resolve(42);              // number
+resolve({ a: 1, b: 2 });  // object
+resolve([1, 2, 3]);       // array
+resolve(true);            // boolean
+resolve();                // undefined
+
+🔹 reject(error)
+
+Marks the Promise as failed.
+
+The argument goes to the .catch(...).
+
+Example:
+
+const p2 = new Promise((resolve, reject) => {
+  reject("Something went wrong!");
+});
+
+p2.catch(err => console.log(err));
+// Output: Something went wrong!
+
+
+Again, you can reject with anything:
+
+reject("Error message"); 
+reject(new Error("Custom error")); 
+reject(404); 
+reject({ code: 500, message: "Server down" });
+
+
+✅ Rule of thumb:
+
+Use resolve(...) when things go right → pass back the "success result".
+
+Use reject(...) when things go wrong → pass back an "error reason".
+
+👉 In real-world APIs:
+
+resolve(data) → returns JSON from the server.
+
+reject(error) → returns error message/HTTP code.
+
+
+
+
+
+
+===================================================================================
+
+
+🟢 What fetch() Does
+
+In JavaScript (browser or Node with polyfills), fetch() is a built-in function used to make HTTP requests (GET, POST, PUT, DELETE, etc.) to a server.
+
+👉 Think of it as your browser saying:
+“Hey server, give me some data” or
+“Hey server, here’s some data I want to save.”
+
+🔹 Basic Syntax
+fetch(url, options?)
+
+
+url → where to send the request (like /tasks, or https://api.github.com/users).
+
+options (optional) → an object that configures the request (method, headers, body, etc.).
+
+🔹 Example 1: Simple GET request
+fetch("/tasks")
+  .then(res => res.json())   // parse response into JSON
+  .then(data => console.log(data));
+
+
+This asks the server at /tasks for data (like your task list).
+
+🔹 Example 2: POST request with body
+fetch("/add", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    title: "Finish project",
+    description: "Due tomorrow"
+  })
+});
+
+
+Here:
+
+method: "POST" → tells server we’re sending data.
+
+headers → extra info (like "I’m sending JSON").
+
+body → actual data (must be a string, so we use JSON.stringify).
+
+🟢 Can we put anything inside fetch()?
+
+Yes and no:
+
+First parameter (url) → must be a string (the URL or endpoint).
+Example: "/tasks", "https://google.com".
+
+Second parameter (options object) → you can put many settings, but only valid ones recognized by fetch.
+Some common ones:
+
+method → "GET", "POST", "PUT", "DELETE".
+
+headers → { "Content-Type": "application/json" }.
+
+body → request payload (string, often JSON).
+
+mode → "cors", "no-cors", "same-origin".
+
+credentials → "same-origin", "include", "omit".
+
+Example:
+
+fetch("/update", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id: 5, status: "done" })
+});
+
+
+⚠️ But you can’t put totally random stuff (like fetch("/tasks", 12345)), because fetch expects a specific format.
+
+🟢 What fetch returns
+
+👉 A Promise that eventually gives you a Response object.
+
+Example:
+
+const res = await fetch("/tasks");
+console.log(res.status); // HTTP status code (200, 404, etc.)
+console.log(res.ok);     // true if success
+console.log(await res.json()); // get body as JSON
+
+
+✅ In short:
+
+fetch() makes HTTP requests to a server.
+
+First argument: URL.
+
+Second argument: options (method, headers, body, etc.).
+
+Returns a Promise → you can await it or use .then().
+
+
+
+===================================================================
+
+
+🟢 1. What do options do in fetch()?
+
+options is the second argument of fetch().
+It tells the browser how you want to make the HTTP request.
+
+👉 Think of it like giving instructions to the waiter in a restaurant:
+
+"GET" → "Just bring me the menu."
+
+"POST" → "Here’s my order, add it to the system."
+
+"DELETE" → "Cancel my order."
+
+Headers → "By the way, I’m vegan, so no meat please."
+
+Body → "Here’s my actual order details."
+
+Common options fields:
+fetch("/add", {
+  method: "POST",                        // HTTP method (default is GET)
+  headers: { "Content-Type": "application/json" }, // extra info for server
+  body: JSON.stringify({ title: "New Task" })      // request payload
+});
+
+
+method: "GET", "POST", "PUT", "DELETE", etc.
+
+headers: extra information sent with the request (like content type, authorization token).
+
+body: actual data you want to send (must be string if JSON, so we JSON.stringify).
+
+mode: controls CORS (Cross-Origin stuff).
+
+credentials: whether to include cookies/auth info.
+
+✅ Without options, fetch(url) defaults to a simple "GET" request.
+
+🟢 2. What does await do?
+
+Remember fetch() returns a Promise.
+That means it doesn’t give you the data immediately — it says:
+👉 "I’ll give it to you later when it’s ready."
+
+await is like saying:
+👉 "Pause this function until the Promise finishes, then continue with the result."
+
+Example without await (using .then)
+fetch("/tasks")
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+Same example with await
+async function getTasks() {
+  const res = await fetch("/tasks");  // wait for response
+  const data = await res.json();      // wait for JSON parsing
+  console.log(data);
+}
+
+
+✅ The big advantage:
+await makes async code look like normal step-by-step code.
+
+🟢 Analogy
+
+Think of await like waiting at the counter until your food is ready, instead of juggling multiple receipts and callbacks.
+
+const res = await fetch("/tasks");  
+
+
+= “I’ll stand here until the server hands me the response, then I’ll move on.”
+
+✅ In short:
+
+options → tells fetch how to behave (method, headers, body, etc.).
+
+await → pauses inside an async function until the Promise (like fetch) is done, so you can work with the actual result.
+
+
+====================================================
+
+
+🟢 1. Why not just use a normal function?
+
+A normal function runs synchronously → step by step.
+
+But network requests (fetch) are asynchronous:
+
+It takes time to travel across the internet 🌍
+
+If JS blocked (waited the old way), your entire page would freeze until the server responded.
+
+So instead, JS uses Promises to represent the "eventual result."
+That way, the browser can keep running other code while waiting.
+
+Example with normal function (not possible):
+
+function getTasks() {
+  const res = fetch("/tasks");   // ❌ this doesn't return data, it returns a Promise
+  const tasks = res.json();      // ❌ tasks isn't ready yet
+  console.log(tasks);
+}
+
+
+👉 This won’t work because fetch hasn’t finished yet.
+
+That’s why we need either:
+
+.then() style (callbacks), or
+
+async/await style (looks like synchronous, but isn’t blocking).
+
+
+
+
+
+
+
+🟢 1. Why not just use a normal function?
+
+A normal function runs synchronously → step by step.
+
+But network requests (fetch) are asynchronous:
+
+It takes time to travel across the internet 🌍
+
+If JS blocked (waited the old way), your entire page would freeze until the server responded.
+
+So instead, JS uses Promises to represent the "eventual result."
+That way, the browser can keep running other code while waiting.
+
+Example with normal function (not possible):
+
+function getTasks() {
+  const res = fetch("/tasks");   // ❌ this doesn't return data, it returns a Promise
+  const tasks = res.json();      // ❌ tasks isn't ready yet
+  console.log(tasks);
+}
+
+
+👉 This won’t work because fetch hasn’t finished yet.
+
+That’s why we need either:
+
+.then() style (callbacks), or
+
+async/await style (looks like synchronous, but isn’t blocking).
+
+🟢 2. What does res.json() do?
+
+When you call fetch, it returns a Response object.
+This contains info like:
+
+{
+  status: 200,
+  ok: true,
+  headers: { ... },
+  body: ReadableStream   // raw stream of bytes from the server
+}
+
+
+But the body isn’t immediately a usable object. It’s raw data.
+
+👉 res.json() is a method on the Response object that reads the body, parses it as JSON, and returns a Promise that resolves to a JavaScript object/array.
+
+Example:
+
+const res = await fetch("/tasks"); 
+console.log(res.status);   // 200
+console.log(res.ok);       // true
+
+const tasks = await res.json();  // parses JSON
+console.log(tasks); // now you get usable JS array/object
+
+
+If server sent this JSON:
+
+[
+  { "id": 1, "title": "Finish homework" },
+  { "id": 2, "title": "Buy milk" }
+]
+
+
+Then tasks in JS becomes:
+
+[
+  { id: 1, title: "Finish homework" },
+  { id: 2, title: "Buy milk" }
+]
+
+🟢 3. What does a Promise return look like?
+
+Let’s try it out:
+
+const res = fetch("/tasks");
+console.log(res);
+
+
+You’ll see something like:
+
+Promise { <pending> }
+
+
+Why? Because the request is still in progress.
+Later it becomes:
+
+Promise { Response }
+
+
+Where Response is:
+
+Response {
+  body: ReadableStream,
+  bodyUsed: false,
+  headers: Headers,
+  ok: true,
+  redirected: false,
+  status: 200,
+  statusText: "OK",
+  type: "basic",
+  url: "http://localhost:3000/tasks"
+}
+
+
+And then if you do:
+
+const data = await res.json();
+console.log(data);
+
+
+You finally see the actual task data as a JS object/array.
+
+✅ In short:
+
+Normal functions can’t "pause" for network requests → that’s why we use Promises + async/await.
+
+res.json() converts the raw server response into usable JS objects.
+
+A Promise looks like { <pending> } at first, then "resolves" with either success (value) or failure (error).
+
+
+========================================================...
+
+
+🟢 1. What is res.json() really?
+
+When you do:
+
+const res = await fetch("/tasks");
+const tasks = await res.json();
+
+
+res is a Response object (not the actual data yet).
+
+res.json() is a method on that Response object.
+
+👉 What it does:
+
+Reads the raw HTTP response body (bytes/stream).
+
+Parses it as JSON text.
+
+Returns a Promise that resolves to a JavaScript object/array.
+
+Example:
+
+If the server sent this response:
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+  { "id": 1, "title": "Finish homework" },
+  { "id": 2, "title": "Buy groceries" }
+]
+
+
+Then:
+
+const res = await fetch("/tasks");
+const tasks = await res.json();
+console.log(tasks);
+
+
+You’ll see:
+
+[
+  { id: 1, title: "Finish homework" },
+  { id: 2, title: "Buy groceries" }
+]
+
+
+So res.json() = "Give me the response body as a JavaScript object, assuming it’s JSON."
+
+🟢 2. When did we create /tasks?
+
+Back in your server.js, you wrote:
+
+app.get("/tasks", (req, res) => {
+  const query = `
+    SELECT t.id, t.title, t.description, t.status, u.username AS assigned_to, t.deadline
+    FROM tasks t LEFT JOIN users u ON t.assigned_to = u.id
+    ORDER BY t.created_at DESC
+  `;
+  db.query(query, (err, results) => {
+    if (err) throw err;
+    res.json(results);  // 🔴 HERE is where JSON comes from
+  });
+});
+
+
+👉 This line:
+
+app.get("/tasks", ...)
+
+
+creates an API endpoint at /tasks.
+
+Whenever someone (browser, frontend JS, Postman, etc.) calls GET /tasks, the server runs the SQL query, fetches tasks from the database, and sends them back as JSON.
+
+👉 This line:
+
+res.json(results);
+
+
+sends the array of tasks from MySQL to the client as JSON.
+
+🟢 3. Connecting it together
+
+In your backend (server.js) you created the endpoint /tasks that responds with JSON.
+
+In your frontend (fetchTasks) you call /tasks using fetch.
+
+The browser gives you a Response object.
+
+You call res.json() to parse it.
+
+Now you finally have a usable JavaScript array of task objects.
+
+✅ So in short:
+
+res.json() = parses server’s JSON response → usable JS object.
+
+/tasks was created in your backend with app.get("/tasks", ...).
+
+Without that route, fetch("/tasks") would give a 404.
+
+
+
+================================================================
+
+
+🟢 1. What is a Response object?
+
+When you use fetch(), the browser (or Node) goes out to the server and asks:
+👉 “Hey server, please give me data from /tasks.”
+
+The server replies with an HTTP response.
+
+This response isn’t just the data — it includes:
+
+status code (200 OK, 404 Not Found, 500 Error, etc.)
+
+headers (metadata, like content type)
+
+body (the actual data, like JSON, HTML, plain text, etc.)
+
+The browser wraps all that into a Response object for you.
+
+Example:
+const res = await fetch("/tasks");
+console.log(res);
+
+
+You’ll see something like:
+
+Response {
+  ok: true,
+  status: 200,
+  statusText: "OK",
+  headers: Headers,
+  url: "http://localhost:3000/tasks",
+  body: ReadableStream
+}
+
+
+res.status → 200 (means success).
+
+res.ok → true if status is in the 200–299 range.
+
+res.headers → extra info about the response.
+
+res.body → the raw response body (a stream of bytes).
+
+⚠️ Notice: res.body isn’t automatically a JS object — it’s raw data.
+
+That’s where parsing comes in.
+
+🟢 2. What is parsing?
+
+👉 Parsing = converting raw data (text/bytes) into a structured format that your program can actually use.
+
+Example with JSON:
+
+The server sends this raw JSON string:
+
+"[{\"id\":1,\"title\":\"Do homework\"},{\"id\":2,\"title\":\"Buy milk\"}]"
+
+
+Looks messy, right? That’s just text.
+
+When you call:
+
+const tasks = await res.json();
+
+
+👉 The browser parses that JSON string into a real JavaScript array:
+
+[
+  { id: 1, title: "Do homework" },
+  { id: 2, title: "Buy milk" }
+]
+
+
+Now you can loop through it, display it, etc.
+
+Other kinds of parsing:
+
+res.text() → parses response body as plain text.
+
+res.json() → parses response body as JSON → JS object.
+
+res.blob() → parses as binary (files, images).
+
+res.formData() → parses as form fields.
+
+🟢 3. Analogy
+
+Imagine you get a letter in the mail:
+
+Envelope → metadata (headers).
+
+Stamp → status (did it arrive or fail?).
+
+Paper with text → body (raw data).
+
+If the letter says:
+
+{"id": 1, "task": "Clean room"}
+
+
+👉 That’s JSON text.
+
+Parsing = you read that text and turn it into a mental model (a structured object you can actually work with).
+
+✅ Summary
+
+A Response object = the whole reply from the server (status, headers, body).
+
+The body is raw data → needs parsing.
+
+Parsing = converting raw text/bytes → usable JS objects/arrays.
+
+res.json() is one parser for JSON bodies.
+
+
+
+
+

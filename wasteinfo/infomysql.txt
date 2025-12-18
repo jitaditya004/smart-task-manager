@@ -1,0 +1,157 @@
+🟢 What is ENUM in MySQL?
+
+ENUM = "enumeration".
+
+It’s a column that can only store one value from a predefined list.
+
+Like a dropdown menu in a form → you must pick from given choices.
+
+🟢 Example from your project
+
+In your tasks table:
+
+status ENUM('pending','in-progress','done') DEFAULT 'pending'
+
+
+Column status can only be:
+
+'pending'
+
+'in-progress'
+
+'done'
+
+If you try to insert something else (like 'waiting'), MySQL will reject it (or store an empty string if strict mode is off).
+
+The default value is 'pending' if you don’t provide one.
+
+🟢 Example usage
+INSERT INTO tasks (title, status) VALUES ('Do homework', 'done');   -- ✅ Works
+INSERT INTO tasks (title, status) VALUES ('Cook food', 'waiting');  -- ❌ Error
+
+
+
+================================================================================
+
+
+
+foreign key (assigned_to) references users(id)
+We’ll modify it to:
+
+sql
+Copy code
+foreign key (assigned_to) references users(id) ON DELETE SET NULL
+Steps (MySQL)
+First, drop the old foreign key constraint:
+
+sql
+Copy code
+ALTER TABLE tasks DROP FOREIGN KEY tasks_ibfk_1;
+(⚠️ The name tasks_ibfk_1 must match your constraint name. In your error message it was tasks_ibfk_1, so we’re safe.)
+
+Add the new constraint with ON DELETE SET NULL:
+
+sql
+Copy code
+ALTER TABLE tasks 
+ADD CONSTRAINT tasks_ibfk_1
+FOREIGN KEY (assigned_to) REFERENCES users(id)
+ON DELETE SET NULL;
+🔎 What happens now?
+If you delete a user:
+
+Their row in users table disappears.
+
+All tasks assigned to them will stay, but their assigned_to becomes NULL.
+
+Your frontend will show them as N/A (because you already have t.assigned_to || 'N/A' in your code ✅).
+
+
+
+=================================================================================
+
+
+You never typed tasks_ibfk_1 yourself — MySQL auto-generates names for foreign key constraints if you don’t explicitly give them one.
+
+When you wrote this in your table definition:
+
+foreign key (assigned_to) references users(id),
+foreign key (team_id) references teams(id)
+
+
+MySQL created constraints with default names like:
+
+tasks_ibfk_1 → for the first foreign key (assigned_to)
+
+tasks_ibfk_2 → for the second foreign key (team_id)
+
+ibfk literally means “InnoDB Foreign Key”.
+
+tasks = the table name
+
+ibfk = InnoDB foreign key
+
+_1 = the first one MySQL created for that table
+
+👉 That’s why when the error showed:
+
+CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`)
+
+
+…it was pointing to the foreign key MySQL generated for you.
+
+
+
+===============================================================================
+
+
+
+
+2️⃣ Use Workbench
+
+Since you have MySQL Workbench:
+
+Open your connection.
+
+In the left panel, expand your database and find the tasks table.
+
+Right-click → Alter Table → Foreign Keys tab.
+
+You can see all FKs (tasks_ibfk_1 etc.) and edit them with ON DELETE SET NULL.
+
+This is easier than scrolling in CLI.
+
+3️⃣ Export or redirect to file (CLI)
+
+You can dump the table structure to a file:
+
+mysqldump -u root -p task_manager tasks --no-data > tasks.sql
+
+
+Opens the full table definition in a file (tasks.sql) you can scroll freely.
+
+
+
+=================================================================
+
+
+That line defines a foreign key constraint in SQL. Let’s break it down:
+
+FOREIGN KEY (assigned_to) REFERENCES users(id)
+
+
+FOREIGN KEY (assigned_to) → This tells MySQL that the column assigned_to in this table (tasks) is a foreign key. It should refer to some value in another table.
+
+REFERENCES users(id) → This specifies that assigned_to must match a value in the id column of the users table.
+
+💡 In simpler terms:
+
+“Every value in tasks.assigned_to must be an existing id in the users table.”
+
+
+
+=======================================================================
+
+
+
+

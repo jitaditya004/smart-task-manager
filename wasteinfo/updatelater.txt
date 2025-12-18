@@ -1,0 +1,40 @@
+async function fetchUsers() {
+    const res = await fetch("/users");
+    const users = await res.json();
+
+    const select = document.getElementById("assigned_to");
+    select.innerHTML = ""; // clear previous options
+
+    users.forEach(u => {
+        const option = document.createElement("option");
+        option.value = u.id;
+        option.textContent = u.username; // show username
+        select.appendChild(option);
+    });
+}
+
+async function fetchTeams() {
+    const res = await fetch("/teams");
+    const teams = await res.json();
+
+    const select = document.getElementById("team_id");
+    select.innerHTML = ""; // clear previous options
+
+    teams.forEach(t => {
+        const option = document.createElement("option");
+        option.value = t.id;
+        option.textContent = t.name; // show team name
+        select.appendChild(option);
+    });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+    fetchtasks();
+    fetchUsers();
+    fetchTeams();
+});
+
+
+
+
+
