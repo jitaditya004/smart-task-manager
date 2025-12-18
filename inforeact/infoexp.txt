@@ -1,0 +1,261 @@
+module.exports = db; is how Node.js shares code between files. Let me explain carefully.
+
+1️⃣ What is module.exports?
+
+In Node.js, each file is a module.
+
+module.exports is an object (or any value) that other files can import using require().
+
+Whatever you assign to module.exports is what other files will get when they require() this file.
+
+2️⃣ Example with your database
+
+Suppose you have a file db.js:
+
+const mysql = require("mysql2");
+
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "",
+  database: "task_manager"
+});
+
+db.connect(err => {
+  if (err) throw err;
+  console.log("✅ MySQL connected");
+});
+
+// Export the db object so other files can use it
+module.exports = db;
+
+
+Here:
+
+db → is your MySQL connection object
+
+module.exports = db → makes it available to other files
+
+3️⃣ How to use it in another file
+const db = require("./db"); // import the db object
+
+db.query("SELECT * FROM users", (err, results) => {
+  if (err) throw err;
+  console.log(results);
+});
+
+
+Now the db variable in this file refers to the same connection you created in db.js.
+
+You don’t have to recreate the connection in every file.
+
+✅ TL;DR: module.exports = db → “make this db object available for other files to import.”
+
+
+===============================================================================
+
+
+
+1. What is a Router?
+
+In Express, a router is like a mini Express app.
+It’s used to group related routes together (e.g., all task-related APIs).
+
+Your file:
+
+const express = require("express");
+const router = express.Router();
+
+
+Here, router is an isolated "mini app" that you can attach routes to.
+
+2. Defining Routes
+router.get("/tasks", taskController.getTasks);
+router.post("/add", taskController.addTask);
+router.post("/update", taskController.updateTask);
+router.post("/delete", taskController.deleteTask);
+
+
+Each line is saying:
+
+When someone makes a request to /tasks using GET, call taskController.getTasks.
+
+When someone makes a request to /add using POST, call taskController.addTask.
+
+Same for update and delete.
+
+3. How Functions Get Called
+
+Let’s say your taskController.js looks like this:
+
+// controllers/taskController.js
+exports.getTasks = (req, res) => {
+  res.send("Getting tasks...");
+};
+
+exports.addTask = (req, res) => {
+  res.send("Adding a new task...");
+};
+
+exports.updateTask = (req, res) => {
+  res.send("Updating a task...");
+};
+
+exports.deleteTask = (req, res) => {
+  res.send("Deleting a task...");
+};
+
+
+Now, whenever a request hits your route:
+
+Express matches the path + method.
+
+It calls the function you gave (taskController.addTask, etc.).
+
+That function runs with req (request object) and res (response object).
+
+Example:
+
+POST /add
+
+
+will trigger → taskController.addTask(req, res).
+
+4. Connecting Router to App
+
+Your main server.js (or app.js) usually has:
+
+const express = require("express");
+const app = express();
+
+const taskRoutes = require("./routes/taskRoutes"); // path to your router file
+app.use("/api", taskRoutes); // all routes start with /api
+
+app.listen(3000, () => console.log("Server running on port 3000"));
+
+
+So now:
+
+GET http://localhost:3000/api/tasks → calls taskController.getTasks.
+
+POST http://localhost:3000/api/add → calls taskController.addTask.
+
+✅ In short:
+
+Router defines paths + HTTP methods.
+
+Controller has the functions that actually run.
+
+App uses the router so everything connects.
+
+Would you like me to draw a simple flow diagram (request → router → controller → response) so you can visualize the function calls?
+
+You said:
+why all starts with /api?
+ChatGPT said:
+
+Good catch 👀 — it doesn’t have to start with /api.
+
+That /api prefix is just a convention, not a rule. Let me explain:
+
+1. Why /api is used
+
+In server.js (or app.js), you usually see:
+
+app.use("/api", taskRoutes);
+
+
+This means:
+👉 "Take everything defined in taskRoutes and put /api in front of it."
+
+So your route file says:
+
+router.get("/tasks", taskController.getTasks);
+
+
+But because of app.use("/api", taskRoutes), the actual URL becomes:
+
+/api/tasks
+
+2. Without /api
+
+If you wrote:
+
+app.use("/", taskRoutes);
+
+
+Then:
+
+GET /tasks → would call taskController.getTasks.
+
+POST /add → would call taskController.addTask.
+
+So /api is optional.
+
+3. Why developers prefer /api
+
+To clearly separate backend API routes from frontend routes/pages.
+Example:
+
+/home → frontend HTML page.
+
+/api/tasks → JSON data for tasks.
+
+If later you serve a frontend (React, Vue, etc.), you avoid conflicts between routes.
+
+✅ Summary:
+
+/api is just a prefix added for organization.
+
+You can remove or change it (e.g., /v1, /backend, etc.).
+
+It helps when your app has both frontend and backend routes
+
+
+
+============================================================================
+
+
+
+In Express (and many other web frameworks), :something is called a route parameter.
+
+Example:
+router.delete("/users/:name", userController.deleteUserByName);
+
+
+Here:
+
+:name is a placeholder.
+
+If you call DELETE /users/alice, then req.params.name === "alice".
+
+If you call DELETE /users/bob, then req.params.name === "bob".
+
+So you can delete a user just by sending the username in the URL.
+
+Without :name
+
+Right now, you’re doing:
+
+router.post("/deleteUserByName", userController.deleteUserByName);
+
+
+That means you must send the username in the body of the request, like:
+
+{ "username": "alice" }
+
+
+That works, but it’s less “REST-style”.
+
+✅ REST Style (cleaner)
+
+GET /users → get all users
+
+POST /users → add a new user
+
+DELETE /users/:name → delete a user by name
+
+
+======================================================================
+
+

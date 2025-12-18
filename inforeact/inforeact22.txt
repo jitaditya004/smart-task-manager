@@ -1,0 +1,149 @@
+1️⃣ constructor keyword
+
+It’s a special function inside a class that runs once when the component is created.
+
+It’s used to initialize state or bind methods.
+
+Example:
+
+class Counter extends React.Component {
+  constructor(props) {
+    super(props); // required to access this.props
+    this.state = { count: 0 }; // initialize state
+  }
+}
+
+
+super(props) → calls the parent class constructor (React.Component) so you can use this.props.
+
+Anything in the constructor runs before the component is mounted on the screen.
+
+2️⃣ componentDidMount()
+
+This is a lifecycle method of class components.
+
+It runs once right after the component is mounted (inserted into the DOM).
+
+Good for:
+
+Fetching data from a server
+
+Setting up subscriptions
+
+Initializing libraries
+
+Example:
+
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { count: 0 };
+  }
+
+  componentDidMount() {
+    console.log("Component mounted!");
+  }
+
+  render() {
+    return <h2>{this.state.count}</h2>;
+  }
+}
+
+
+Output: "Component mounted!" appears in the console after the component appears on the page.
+
+It runs only once, unless the component is removed and added again.
+
+Comparison with Hooks
+
+The equivalent of componentDidMount in a functional component is:
+
+useEffect(() => {
+  console.log("Component mounted!");
+}, []); // empty dependency array → runs only once
+
+
+useEffect can also replace componentDidUpdate and componentWillUnmount depending on how you use it.
+
+If you want, I can draw a simple timeline diagram showing constructor → render → componentDidMount → updates, so it’s easy to visualize.
+
+Do you want me to do that?
+
+You said:
+componentdidmount is a keyword?? and where did setstate came from out of nowhere?why count:this.state.count.. why the dots and this keyword ?
+
+ChatGPT said:
+
+Let’s break this carefully. You’ve asked a few different things, so I’ll explain each one clearly.
+
+1️⃣ componentDidMount
+
+It’s not a keyword, it’s a method name defined by React for class components.
+
+React calls this method automatically after the component is mounted.
+
+You define it yourself inside a class, and React runs it.
+
+class Counter extends React.Component {
+  componentDidMount() {
+    console.log("Mounted!");
+  }
+}
+
+
+Here, componentDidMount is just a function you write, but React knows to call it after the component appears on the page.
+
+2️⃣ setState
+
+setState is a method provided by React for class components.
+
+You never define it yourself; React gives it to every class component that extends React.Component.
+
+You use it to update the component’s state.
+
+React then re-renders the component automatically with the new state.
+
+Example:
+
+this.setState({ count: this.state.count + 1 });
+
+
+this.state.count → current value of count in the state
+
+count: this.state.count + 1 → new value we want to set
+
+3️⃣ Why this and dots
+
+this → refers to the current class instance.
+
+this.state → the state object defined in the class.
+
+this.state.count → the count property inside the state.
+
+The dot . is just normal JavaScript object property access.
+
+Putting it together
+class Counter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { count: 0 }; // state object with count
+  }
+
+  componentDidMount() {
+    console.log("Mounted! Count is:", this.state.count);
+    this.setState({ count: this.state.count + 1 }); // update state
+  }
+
+  render() {
+    return <h2>{this.state.count}</h2>;
+  }
+}
+
+
+Initially count = 0
+
+After mounting, componentDidMount runs → setState updates count → component re-renders with count = 1
+
+=============================================================================
+
+

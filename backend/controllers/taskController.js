@@ -1,7 +1,7 @@
 // backend/controllers/taskController.js
 const db = require("../config/db");
 
-// 🧠 GET TASKS
+// 🧠 GET TASKS (WITH ATTACHMENTS FIX)
 exports.getTasks = async (req, res) => {
   try {
     const { id, role } = req.user;
@@ -9,18 +9,64 @@ exports.getTasks = async (req, res) => {
 
     if (role === "admin") {
       query = `
-        SELECT t.id, t.title, t.description, t.status, t.priority, u.username AS assigned_to, t.deadline
+        SELECT 
+          t.id,
+          t.title,
+          t.description,
+          t.status,
+          t.priority,
+          t.deadline,
+          u.username AS assigned_to,
+
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', a.id,
+                'file_path', a.file_path,
+                'file_name', a.file_name,
+                'file_type', a.file_type
+              )
+            ) FILTER (WHERE a.id IS NOT NULL),
+            '[]'
+          ) AS attachments
+
         FROM tasks t
         LEFT JOIN users u ON t.assigned_to = u.id
+        LEFT JOIN task_attachments a ON a.task_id = t.id
+
+        GROUP BY t.id, u.username
         ORDER BY t.created_at DESC
       `;
       params = [];
     } else {
       query = `
-        SELECT t.id, t.title, t.description, t.status, t.priority, u.username AS assigned_to, t.deadline
+        SELECT 
+          t.id,
+          t.title,
+          t.description,
+          t.status,
+          t.priority,
+          t.deadline,
+          u.username AS assigned_to,
+
+          COALESCE(
+            json_agg(
+              json_build_object(
+                'id', a.id,
+                'file_path', a.file_path,
+                'file_name', a.file_name,
+                'file_type', a.file_type
+              )
+            ) FILTER (WHERE a.id IS NOT NULL),
+            '[]'
+          ) AS attachments
+
         FROM tasks t
         LEFT JOIN users u ON t.assigned_to = u.id
+        LEFT JOIN task_attachments a ON a.task_id = t.id
+
         WHERE t.assigned_to = $1 OR t.created_by = $2
+        GROUP BY t.id, u.username
         ORDER BY t.created_at DESC
       `;
       params = [id, id];
@@ -28,11 +74,13 @@ exports.getTasks = async (req, res) => {
 
     const { rows } = await db.query(query, params);
     res.json(rows);
+
   } catch (err) {
     console.error("❌ Error fetching tasks:", err);
     res.status(500).json({ success: false, error: "Failed to fetch tasks" });
   }
 };
+
 
 // 🧠 ADD TASK
 exports.addTask = async (req, res) => {
@@ -130,5 +178,73 @@ exports.deleteTask = async (req, res) => {
   } catch (err) {
     console.error("❌ Delete Task Error:", err);
     res.status(500).json({ error: "Failed to delete task" });
+  }
+};
+
+
+// TASK ATTACHMENTS
+exports.uploadAttachment = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    await db.query(
+      `INSERT INTO task_attachments (task_id, file_path, file_name, file_type)
+       VALUES ($1, $2, $3, $4)`,
+      [taskId, file.path, file.originalname, file.mimetype]
+    );
+
+    res.json({ success: true, message: "File uploaded successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to upload attachment" });
+  }
+};
+
+exports.getAttachments = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    const { rows } = await db.query(
+      `SELECT id, file_path, file_name, file_type, uploaded_at 
+       FROM task_attachments 
+       WHERE task_id = $1`,
+      [taskId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch attachments" });
+  }
+};
+
+
+const path = require("path");
+
+exports.downloadAttachment = async (req, res) => {
+  try {
+    const { fileId } = req.params;
+
+    const { rows } = await db.query(
+      `SELECT file_path, file_name FROM task_attachments WHERE id = $1`,
+      [fileId]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    const filePath = path.join(__dirname, "..", rows[0].file_path);
+    const fileName = rows[0].file_name;
+
+    res.download(filePath, fileName); // ✅ THIS FORCES DOWNLOAD
+  } catch (err) {
+    console.error("Download error:", err);
+    res.status(500).json({ error: "Failed to download file" });
   }
 };

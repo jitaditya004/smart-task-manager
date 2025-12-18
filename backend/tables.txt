@@ -76,3 +76,65 @@ CREATE INDEX IF NOT EXISTS idx_users_email    ON users (email);
 
 
 
+-- 1) create backup table (preserves original teams.id)
+CREATE TABLE IF NOT EXISTS deleted_teams_backup (
+  id integer,                        -- original team id
+  name varchar(100),
+  deleted_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2) trigger function that inserts deleted row into backup
+CREATE OR REPLACE FUNCTION trg_fn_backup_deleted_team()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO deleted_teams_backup (id, name, deleted_at)
+  VALUES (OLD.id, OLD.name, now());
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 3) trigger on teams table to call function after delete
+DROP TRIGGER IF EXISTS trg_after_delete_team ON teams;
+CREATE TRIGGER trg_after_delete_team
+AFTER DELETE ON teams
+FOR EACH ROW
+EXECUTE FUNCTION trg_fn_backup_deleted_team();
+
+
+
+CREATE TABLE IF NOT EXISTS deleted_users_backup (
+  id integer,
+  username varchar(50),
+  password varchar(255),
+  deleted_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION trg_fn_backup_deleted_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO deleted_users_backup (id, username, password, deleted_at)
+  VALUES (OLD.id, OLD.username, OLD.password, now());
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+DROP TRIGGER IF EXISTS trg_after_delete_user ON users;
+
+CREATE TRIGGER trg_after_delete_user
+AFTER DELETE ON users
+FOR EACH ROW
+EXECUTE FUNCTION trg_fn_backup_deleted_user();
+
+
+
+
+CREATE TABLE task_attachments (
+    id SERIAL PRIMARY KEY,
+    task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
+    file_path TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT NOW()
+);

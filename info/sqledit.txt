@@ -1,0 +1,35 @@
+SHOW DATABASES;
+USE task_manager;
+SHOW TABLES;
+
+===================
+
+SHOW CREATE TABLE tasks;
+You’ll see something like:
+
+
+
+CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`)
+tasks_ibfk_1 is the foreign key name for assigned_to.
+
+Do the same for team_id if needed.
+
+2️⃣ Drop the old foreign key
+sql
+
+ALTER TABLE tasks
+DROP FOREIGN KEY tasks_ibfk_1;
+3️⃣ Add the new foreign key with ON DELETE SET NULL
+sql
+
+ALTER TABLE tasks
+ADD CONSTRAINT tasks_ibfk_1
+FOREIGN KEY (assigned_to) REFERENCES users(id)
+ON DELETE SET NULL;
+
+
+
+==========================================================================
+
+
+

@@ -1,0 +1,126 @@
+A LEFT JOIN in DBMS (or SQL) is a way to combine rows from two tables, keeping all rows from the left table and including matched rows from the right table. If there’s no match, the right table columns are filled with NULL.
+
+Let me break it down carefully:
+
+1️⃣ Syntax
+SELECT columns
+FROM left_table
+LEFT JOIN right_table
+ON left_table.key = right_table.key;
+
+
+left_table → the main table (all its rows will appear)
+
+right_table → the table you are joining (matched rows are included, unmatched are NULL)
+
+ON → the condition to match rows
+
+2️⃣ Example
+
+users table:
+
+id	username
+1	Alice
+2	Bob
+3	Carol
+
+tasks table:
+
+id	title	assigned_to
+1	Task A	1
+2	Task B	2
+3	Task C	5
+
+Query:
+
+SELECT u.id, u.username, t.title
+FROM users u
+LEFT JOIN tasks t
+ON u.id = t.assigned_to;
+
+
+Result:
+
+id	username	title
+1	Alice	Task A
+2	Bob	Task B
+3	Carol	NULL
+
+✅ Explanation:
+
+All users appear (left table = users).
+
+Tasks match where assigned_to equals users.id.
+
+Carol has no task, so title is NULL.
+
+3️⃣ Key points
+
+LEFT JOIN keeps all rows from the left table.
+
+Unmatched rows in the right table → NULL.
+
+Useful for: “Show everything from table A, with related info from table B if it exists.”
+
+
+==================================================================
+
+
+1. For SELECT queries
+db.query("SELECT * FROM users", (err, result) => {
+    if (err) throw err;
+    console.log(result);
+});
+
+
+Here, result is an array of rows (each row is a JS object).
+
+Example:
+
+[
+  { id: 1, username: 'alice' },
+  { id: 2, username: 'bob' }
+]
+
+🔹 2. For INSERT, UPDATE, DELETE queries
+db.query("DELETE FROM users WHERE id = 5", (err, result) => {
+    if (err) throw err;
+    console.log(result);
+});
+
+
+Here, result is not rows but an object with metadata, like:
+
+{
+  fieldCount: 0,
+  affectedRows: 1,    // ✅ number of rows actually deleted/updated
+  insertId: 0,        // if you did INSERT, this would be the new id
+  serverStatus: 2,
+  warningCount: 0,
+  message: '(Rows matched: 1  Changed: 1  Warnings: 0)',
+  protocol41: true,
+  changedRows: 1      // useful for UPDATE queries
+}
+
+
+affectedRows → tells how many rows were impacted.
+
+insertId → gives the new auto-increment ID (for INSERT).
+
+changedRows → tells how many rows actually changed in UPDATE.
+
+✅ Example usage:
+
+db.query("UPDATE users SET username = 'newName' WHERE id = 3", (err, result) => {
+    if (err) throw err;
+    if (result.affectedRows > 0) {
+        console.log("Update successful!");
+    } else {
+        console.log("No user found with that ID.");
+    }
+});
+
+
+👉 So yes, result can contain affectedRows (and more) depending on the type of query.
+
+

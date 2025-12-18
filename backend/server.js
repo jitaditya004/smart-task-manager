@@ -28,6 +28,18 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+//turns upload folder to public folder
+
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    setHeaders: (res, filePath) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    }
+  })
+);
+
+
 // ⭐ Enable parsing HttpOnly cookies
 app.use(cookieParser());
 

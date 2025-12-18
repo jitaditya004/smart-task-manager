@@ -50,94 +50,119 @@ function TaskForm({ users, teams, refresh, userId }) {
     }
   }
 
-  return (
-    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Create a New Task
-      </h2>
 
-      {/* Title */}
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Task Title"
-        className="w-full p-3 mb-4 rounded-lg border border-gray-300 
-                   focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
-      />
+return (
+  <div className="p-8 bg-white rounded-2xl shadow-xl border border-gray-200 space-y-5">
 
-      {/* Description */}
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Task Description"
-        rows={3}
-        className="w-full p-3 mb-4 rounded-lg border border-gray-300 
-                   focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm resize-none"
-      />
+    <h2 className="text-2xl font-extrabold text-gray-800 flex items-center gap-2">
+      ✅ Create a New Task
+    </h2>
 
+    {/* Title */}
+    <input
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      placeholder="Task Title"
+      className="w-full p-3 rounded-lg border border-gray-300 
+                 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
+    />
+
+    {/* Description */}
+    <textarea
+      value={description}
+      onChange={(e) => setDescription(e.target.value)}
+      placeholder="Task Description"
+      rows={3}
+      className="w-full p-3 rounded-lg border border-gray-300 
+                 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm resize-none"
+    />
+
+    {/* Priority */}
+    <div>
+      <label className="text-sm font-semibold text-gray-700 block mb-1">
+        Priority
+      </label>
       <select
         value={priority}
         onChange={(e) => setPriority(e.target.value)}
-        className="w-full p-3 mb-4 rounded-lg border border-gray-300"
+        className="w-full p-3 rounded-lg border border-gray-300 
+                   focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
       >
         <option value="low">Low</option>
         <option value="medium">Medium</option>
         <option value="high">High</option>
         <option value="urgent">Urgent</option>
-      </select>      
+      </select>
+    </div>
 
-      {/* Team Dropdown */}
+    {/* Team Dropdown */}
+    <div>
+      <label className="text-sm font-semibold text-gray-700 block mb-1">
+        Team (optional)
+      </label>
       <select
         value={teamId}
         onChange={(e) => setTeamId(e.target.value)}
-        className="w-full p-3 mb-4 rounded-lg border border-gray-300 
-                   focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+        className="w-full p-3 rounded-lg border border-gray-300 
+                   focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
       >
-        <option value="">Personal Task (no team)</option>
+        <option value="">Personal Task</option>
         {teams.map((t) => (
           <option key={t.id} value={t.id}>{t.name}</option>
         ))}
       </select>
+    </div>
 
-      {/* Assign to user (only if team selected) */}
-      {teamId && (
+    {/* Assign to user */}
+    {teamId && (
+      <div>
+        <label className="text-sm font-semibold text-gray-700 block mb-1">
+          Assign To
+        </label>
         <select
           value={assignedTo}
           onChange={(e) => setAssignedTo(e.target.value)}
-          className="w-full p-3 mb-4 rounded-lg border border-gray-300 
-                     focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+          className="w-full p-3 rounded-lg border border-gray-300 
+                     focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
         >
-          <option value="">Assign to...</option>
+          <option value="">Select user</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>{u.username}</option>
           ))}
         </select>
-      )}
+      </div>
+    )}
 
-      {/* Deadline */}
-      <label className="text-gray-700 font-medium mb-1 block">Deadline</label>
+    {/* Deadline */}
+    <div>
+      <label className="text-sm font-semibold text-gray-700 block mb-1">
+        Deadline
+      </label>
       <input
         type="date"
         value={deadline}
         onChange={(e) => setDeadline(e.target.value)}
-        className="w-full p-3 mb-6 rounded-lg border border-gray-300 
-                   focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+        className="w-full p-3 rounded-lg border border-gray-300 
+                   focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
       />
-
-      {/* Submit Button */}
-      <button
-        onClick={addTask}
-        disabled={loading}
-        className={`w-full py-3 rounded-lg text-white font-semibold shadow-md transition-all ${
-          loading
-            ? "bg-blue-300 cursor-not-allowed"
-            : "bg-blue-500 hover:bg-blue-600 hover:scale-[1.02]"
-        }`}
-      >
-        {loading ? "Adding Task..." : "Add Task"}
-      </button>
     </div>
-  );
+
+    {/* Submit Button */}
+    <button
+      onClick={addTask}
+      disabled={loading}
+      className={`w-full py-3 rounded-xl text-white font-semibold shadow-md transition-all ${
+        loading
+          ? "bg-indigo-300 cursor-not-allowed"
+          : "bg-indigo-600 hover:bg-indigo-700 hover:scale-[1.02]"
+      }`}
+    >
+      {loading ? "Adding Task..." : "Add Task"}
+    </button>
+
+  </div>
+);
+
 }
 
 export default TaskForm;

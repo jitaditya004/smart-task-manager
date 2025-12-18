@@ -1,0 +1,3 @@
+npx supabase --version
+npx supabase init
+npx supabase start
