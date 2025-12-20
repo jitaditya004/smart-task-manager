@@ -5,14 +5,14 @@ import TaskList from "../components/TaskList";
 //users and user are different by the way
 export default function PersonalView({ tasks, users, teams, refresh, user }) {
 
-  // ✅ HARD SAFETY GUARD — prevents white screen on first load
-  if (!user) {
-    return (
-      <div className="max-w-3xl mx-auto py-10 text-center text-gray-600">
-        Loading your dashboard...
-      </div>
-    );
-  }
+  // // ✅ HARD SAFETY GUARD — prevents white screen on first load
+  // if (!user) {
+  //   return (
+  //     <div className="max-w-3xl mx-auto py-10 text-center text-gray-600">
+  //       Loading your dashboard...
+  //     </div>
+  //   );
+  // }
 
 
   //testing delete it

@@ -62,6 +62,8 @@ useEffect(() => {
     }
   }, [dataChanged, isLoggedIn]);
 
+
+  /*
   async function fetchTasks() {
     try {
       const res = await fetch("/tasks", {
@@ -76,6 +78,35 @@ useEffect(() => {
       console.error(err);
     }
   }
+*/
+
+  async function fetchTasks(){
+    try{
+      const res=await fetch("/tasks",{
+        method:"GET",
+        // headers:{"Content-Type":"application/json"},
+        credentials:"include",
+        
+      });
+      if(!res.ok){
+        throw new Error("fetch tasks failed")
+      }
+      const data=await res.json();
+      setTasks(data);
+
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+//fetch does not have res.data
+//it only exist in axios, not fetch
+//res.ok is true and faslse based on http status
+
+
+
+
+
 
   async function fetchUsers() {
     try {
