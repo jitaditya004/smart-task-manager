@@ -15,9 +15,6 @@ export default function PersonalView({ tasks, users, teams, refresh, user }) {
   // }
 
 
-  //testing delete it
-  console.log("PERSONAL VIEW USER:", user);
-
   return (
     <div className="max-w-3xl mx-auto space-y-10 py-6 px-4">
 

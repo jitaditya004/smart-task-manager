@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { apifetch } from "../api/api";
 
 function Login({ onLoginSuccess, onSwitchToSignup }) {
   const [username, setUsername] = useState("");
@@ -18,7 +19,7 @@ async function handleSubmit(e) {
   };
 
   try {
-    const res = await fetch("/auth/login", {
+    const res = await apifetch("/auth/login", {
       method: "POST",
       credentials: "include",
       headers: {

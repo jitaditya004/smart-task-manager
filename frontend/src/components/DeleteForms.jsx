@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { apifetch } from "../api/api";
 
 function DeleteForms({ role, refreshUsers, refreshTeams, fetchTasks }) {
   const [userName, setUserName] = useState("");
@@ -22,7 +23,7 @@ function DeleteForms({ role, refreshUsers, refreshTeams, fetchTasks }) {
 
     setLoadingUser(true);
 
-    const res = await fetch("/users/delete", {
+    const res = await apifetch("/users/delete", {
       method: "DELETE",
       credentials: "include",
       headers: {
@@ -57,7 +58,7 @@ function DeleteForms({ role, refreshUsers, refreshTeams, fetchTasks }) {
 
     setLoadingTeam(true);
 
-    const res = await fetch("/teams/delete", {
+    const res = await apifetch("/teams/delete", {
       method: "DELETE",
       credentials: "include",
       headers: {

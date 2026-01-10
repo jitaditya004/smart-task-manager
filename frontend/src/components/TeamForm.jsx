@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { apifetch } from "../api/api";
 
 function TeamForm({ refresh }) {
   const [name, setName] = useState("");
@@ -13,7 +14,7 @@ function TeamForm({ refresh }) {
     try {
       setLoading(true);
 
-      const res = await fetch("/teams/add", {
+      const res = await apifetch("/teams/add", {
         method: "POST",
         credentials: "include", // ⭐ REQUIRED for HttpOnly cookie auth
         headers: {

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { apifetch } from "../api/api";
 
 function Signup({ onSignupSuccess, onSwitchToLogin }) {
   const [formData, setFormData] = useState({
@@ -24,7 +25,7 @@ function Signup({ onSignupSuccess, onSwitchToLogin }) {
 
 
     try {
-      const res = await fetch("/auth/signup", {
+      const res = await apifetch("/auth/signup", {
         method: "POST",
         credentials: "include", // ⭐ keeps future-proof (cookies, CORS)
         headers: {

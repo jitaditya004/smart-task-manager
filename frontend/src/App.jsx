@@ -5,6 +5,7 @@ import TeamView from "./views/TeamView.jsx";
 import Login from "./pages/Login.jsx";
 import Signup from "./pages/Signup.jsx";
 import "./style.css";
+import { apifetch } from "./api/api.js";
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -20,7 +21,7 @@ function App() {
 
 async function checkSession() {
     try {
-      const res = await fetch("/auth/check", {
+      const res = await apifetch("/auth/check", {
         method: "GET",
         credentials: "include",
       });
@@ -60,7 +61,7 @@ useEffect(() => {
   /*
   async function fetchTasks() {
     try {
-      const res = await fetch("/tasks", {
+      const res = await apifetch("/tasks", {
         method: "GET",
         credentials: "include",
       });
@@ -76,7 +77,7 @@ useEffect(() => {
 
   async function fetchTasks(){
     try{
-      const res=await fetch("/tasks",{
+      const res=await apifetch("/tasks",{
         method:"GET",
         // headers:{"Content-Type":"application/json"},
         credentials:"include",
@@ -104,7 +105,7 @@ useEffect(() => {
 
   async function fetchUsers() {
     try {
-      const res = await fetch("/users", {
+      const res = await apifetch("/users", {
         method: "GET",
         credentials: "include",
       });
@@ -119,7 +120,7 @@ useEffect(() => {
 
   async function fetchTeams() {
     try {
-      const res = await fetch("/teams", {
+      const res = await apifetch("/teams", {
         method: "GET",
         credentials: "include",
       });
@@ -135,7 +136,7 @@ useEffect(() => {
  
   async function handleLogout() {
     try {
-      await fetch("/auth/logout", {
+      await apifetch("/auth/logout", {
         method: "POST",
         credentials: "include",
       });

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { apifetch } from "../api/api";
 
 function UserForm({ refresh, user }) {
   const [username, setUsername] = useState("");
@@ -19,7 +20,7 @@ function UserForm({ refresh, user }) {
     try {
       setLoading(true);
 
-      const res = await fetch("/users/add", {
+      const res = await apifetch("/users/add", {
         method: "POST",
         credentials: "include",
         headers: {

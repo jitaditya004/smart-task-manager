@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Menu, X, User, Users, LogOut } from "lucide-react";
+import { apifetch } from "../api/api";
 
 function Sidebar({ activeView, setActiveView }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,7 +12,7 @@ function Sidebar({ activeView, setActiveView }) {
     setLoggingOut(true);
 
     try {
-      await fetch("/auth/logout", {
+      await apifetch("/auth/logout", {
         method: "POST",
         credentials: "include", // ⭐ required for cookie-based logout
       });

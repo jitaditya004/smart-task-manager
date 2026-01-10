@@ -2,6 +2,7 @@
 
 import React,{useState} from "react";
 const BACKEND_URL=import.meta.env.VITE_BACKEND_URL;
+import { apifetch } from "../api/api";
 
 function TaskList({ tasks, refresh }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -12,7 +13,7 @@ function TaskList({ tasks, refresh }) {
 
 //state boolean but we use ternary to make it string
   async function updateStatus(id,status){
-    await fetch("/tasks/update",{
+    await apifetch("/tasks/update",{
       headers:{"Content-Type":"application/json"},
       credentials:"include",
       method:"PUT",
@@ -32,7 +33,7 @@ function TaskList({ tasks, refresh }) {
   async function deleteTask(id) {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
 
-    await fetch("/tasks/delete", {
+    await apifetch("/tasks/delete", {
       method: "DELETE",
       credentials: "include", // ⭐ send cookie for auth
       headers: {
@@ -50,7 +51,7 @@ function TaskList({ tasks, refresh }) {
     const formdata=new FormData();
     formdata.append("attachment",file);  //field name mismatch means backend has diff name
 
-    const data=await fetch(`/tasks/attachments/${taskId}`,{
+    const data=await apifetch(`/tasks/attachments/${taskId}`,{
       method:"POST",
       credentials:"include",
       body:formdata
