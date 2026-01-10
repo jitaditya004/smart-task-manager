@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //turns upload folder to public folder
-
+//do this for public files, never for private files
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
@@ -38,13 +38,26 @@ app.use(
     }
   })
 );
+///code exposes uploads folder as a public url , serves files from it, and adds a cors header so those files can be accessed from any frontend,
+// "/uploads" is url
+//express.static is built-in express middleware that maps a folder on disk-- public urls
+//setheader adds info to http response that tells browser how it is allowed to use the response
+//as header of response has metadata , with rules , permission , types etc.
+//so we use it to allow any website to access this response,
+//browser blocks different origins like here frontend and backend on different ports
+//without this header , preview or download dont work
+//well i tried and it was taking me to file path but had frontend url at the begginning, so the same web page of frontend was opening
 
 
 // ⭐ Enable parsing HttpOnly cookies
 app.use(cookieParser());
 
 // Serve static files if needed
-app.use(express.static(path.join(__dirname, "public")));
+//app.use(express.static(path.join(__dirname, "public")));
+//express.static is built-in express middleware that maps a folder on disk-- public urls
+//automatically handles file requests, "public" is folder naem 
+//result is absolute path to public/
+
 
 // ------------------------------------------------------
 // ROUTES

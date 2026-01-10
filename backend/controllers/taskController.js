@@ -312,6 +312,10 @@ exports.getAttachments = async (req, res) => {
 
 
 const path = require("path");
+//used to safely build paths
+//prevent os issue / vs \
+//preventts path traversal bugs
+//nver concatenate paths manually for files
 
 exports.downloadAttachment = async (req, res) => {
   try {
@@ -327,9 +331,17 @@ exports.downloadAttachment = async (req, res) => {
     }
 
     const filePath = path.join(__dirname, "..", rows[0].file_path);
+    //just wrote-- --dirname-- is current controller folder
+    //..  -- get out
+    //then relative path from db
+    //path.join works cross-platform
     const fileName = rows[0].file_name;
 
-    res.download(filePath, fileName); // ✅ THIS FORCES DOWNLOAD
+    res.download(filePath, fileName);
+    //it does internally
+    //Content-Disposition: attachment; filename="fileName"
+    //streams file to client
+    //browser must downlaod not preview
   } catch (err) {
     console.error("Download error:", err);
     res.status(500).json({ error: "Failed to download file" });

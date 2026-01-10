@@ -1,4 +1,5 @@
 // backend/middleware/authMiddleware.js
+
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -44,3 +45,28 @@ function verifyToken(req, res, next) {
 }
 
 module.exports = { verifyToken };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// When would it need async?
+
+// Only if you use:
+
+// jwt.verify(token, secret, callback) wrapped in a Promise
+
+// DB lookup inside middleware
+
+// Redis / session store
+
+// Refresh-token rotation
