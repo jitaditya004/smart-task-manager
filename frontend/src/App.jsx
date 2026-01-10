@@ -18,12 +18,7 @@ function App() {
   const [showSignup, setShowSignup] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-
-  // -------------------------------------------------------------
-  // 🔐 CHECK AUTH SESSION (Cookie-based)
-  // -------------------------------------------------------------
-useEffect(() => {
-  async function checkSession() {
+async function checkSession() {
     try {
       const res = await fetch("/auth/check", {
         method: "GET",
@@ -34,7 +29,7 @@ useEffect(() => {
         const data = await res.json();
         console.log("AUTH CHECK RESULT:", data);
 
-        setCurrentUser(data.user); // <-- Save admin/user info
+        setCurrentUser(data.user); 
         setIsLoggedIn(true);
       } else {
         setIsLoggedIn(false);
@@ -47,13 +42,12 @@ useEffect(() => {
     }
   }
 
+useEffect(() => {
   checkSession();
 }, []);
 
 
-  // -------------------------------------------------------------
-  // 🧲 FETCH TASKS / USERS / TEAMS (Cookie included auto)
-  // -------------------------------------------------------------
+
   useEffect(() => {
     if (isLoggedIn) {
       fetchTasks();
@@ -138,9 +132,7 @@ useEffect(() => {
     }
   }
 
-  // -------------------------------------------------------------
-  // 🚪 LOGOUT — Clear HttpOnly cookie on backend
-  // -------------------------------------------------------------
+ 
   async function handleLogout() {
     try {
       await fetch("/auth/logout", {
@@ -154,9 +146,7 @@ useEffect(() => {
     setIsLoggedIn(false);
   }
 
-  // -------------------------------------------------------------
-  // ⏳ Show Loading Screen While Checking Session
-  // -------------------------------------------------------------
+  
   if (checkingAuth) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-700">
@@ -165,9 +155,7 @@ useEffect(() => {
     );
   }
 
-  // -------------------------------------------------------------
-  // 🔑 Show Login / Signup Pages
-  // -------------------------------------------------------------
+
   if (!isLoggedIn) {
     return showSignup ? (
       <Signup
@@ -182,9 +170,18 @@ useEffect(() => {
     );
   }
 
-  // -------------------------------------------------------------
-  // 🏡 MAIN LOGGED-IN DASHBOARD
-  // -------------------------------------------------------------
+   
+  if (!currentUser) {
+    checkSession();
+    return (
+      <div className="max-w-5xl mx-auto py-10 text-center text-gray-600">
+        Loading User Details..
+      </div>
+      
+    );
+  }
+
+
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar

@@ -1,0 +1,4 @@
+npm i nodemailer node-cron
+
+EMAIL_USER=yourgmail@gmail.com
+EMAIL_PASS=your_app_password

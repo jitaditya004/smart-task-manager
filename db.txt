@@ -1,0 +1,95 @@
+CREATE TABLE users (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  username VARCHAR(50) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(255) NOT NULL ,
+  created_by INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE teams (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  created_by INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE tasks (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  priority VARCHAR(10),
+  status VARCHAR(255) NOT NULL,
+  deadline TIMESTAMPTZ,
+  created_by INTEGER,
+  assigned_to INTEGER,
+  team_id INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE task_attachments (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  task_id INTEGER NOT NULL,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_type TEXT,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE deleted_users_backup (
+  id INTEGER,
+  username VARCHAR(50),
+  password VARCHAR(255),
+  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE deleted_teams_backup (
+  id INTEGER,
+  name VARCHAR(100),
+  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_tasks_team_id ON tasks(team_id);
+CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to);
+CREATE INDEX idx_tasks_created_by ON tasks(created_by);
+CREATE INDEX idx_task_attachments_task_id ON task_attachments(task_id);
+CREATE OR REPLACE FUNCTION backup_deleted_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO deleted_users_backup (
+    id,
+    username,
+    password,
+    deleted_at
+  )
+  VALUES (
+    OLD.id,
+    OLD.username,
+    OLD.password,
+    CURRENT_TIMESTAMP
+  );
+
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER trg_backup_deleted_user
+BEFORE DELETE ON users
+FOR EACH ROW
+EXECUTE FUNCTION backup_deleted_user();
+CREATE OR REPLACE FUNCTION backup_deleted_team()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO deleted_teams_backup (
+    id,
+    name,
+    deleted_at
+  )
+  VALUES (
+    OLD.id,
+    OLD.name,
+    CURRENT_TIMESTAMP
+  );
+
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER trg_backup_deleted_team
+BEFORE DELETE ON teams
+FOR EACH ROW
+EXECUTE FUNCTION backup_deleted_team();
+--Using AFTER DELETE (can break if delete rolls back)

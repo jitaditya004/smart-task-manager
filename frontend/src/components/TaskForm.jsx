@@ -12,6 +12,7 @@ function TaskForm({ users, teams, refresh, userId }) {
 
   // 🧠 Create Task
   async function addTask() {
+
     if (!title.trim() || !description.trim()) {
       alert("Title and description are required!");
       return;
@@ -30,7 +31,7 @@ function TaskForm({ users, teams, refresh, userId }) {
         description,
         assigned_to: finalAssignedTo,
         team_id: teamId || null,
-        deadline: deadline || null,
+        deadline: deadline ? new Date(deadline).toISOString() : null,
         priority
       }),
     });
@@ -139,7 +140,7 @@ return (
         Deadline
       </label>
       <input
-        type="date"
+        type="datetime-local"
         value={deadline}
         onChange={(e) => setDeadline(e.target.value)}
         className="w-full p-3 rounded-lg border border-gray-300 

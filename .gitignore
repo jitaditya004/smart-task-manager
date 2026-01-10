@@ -10,3 +10,5 @@
 
 # doubt.txt
 # waste1
+*/.env
+*/node_modules

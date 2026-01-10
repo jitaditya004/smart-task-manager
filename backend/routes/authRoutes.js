@@ -60,32 +60,6 @@ router.post("/signup", async (req, res) => {
 
 
 
-// Why bcrypt is used (interview gold)
-// ❌ Why NOT normal hashing (SHA256)?
-
-// Too fast
-
-// Vulnerable to brute-force & rainbow tables
-
-// ✅ Why bcrypt?
-
-// Intentionally slow
-
-// Built-in salt
-
-// Resistant to GPU attacks
-
-// Time-tested
-
-// “Password hashing must be slow. Encryption must be fast.”
-
-
-
-
-
-// --------------------------------------------------------
-// 🔑 LOGIN — Sets HttpOnly cookie
-// --------------------------------------------------------
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -115,19 +89,16 @@ router.post("/login", async (req, res) => {
       SECRET_KEY,
       { expiresIn: "1d" }
     );
-    //creates a signed json web token , jwt, that proves user is authenticated
 
-/*
-    jwt.sign({id:user.id,role:user.role},SECRET_KEY,{expiresIn:"1d"});
-*/
+    const isProd = process.env.NODE_ENV === "production";
 
-    // 4️⃣ Send as cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // change to true when using HTTPS
-      sameSite: "lax",
+      secure: isProd,        // MUST be true in production
+      sameSite: isProd ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
+
 
     return res.json({
       success: true,
@@ -141,78 +112,6 @@ router.post("/login", async (req, res) => {
     return res.status(500).json({ error: "Login failed" });
   }
 });
-
-
-
-
-// Payload (data inside the token)
-// { id, role, username }
-
-
-// Stored inside the JWT
-
-// Sent to client
-
-// Read later by auth middleware
-
-// ❗ Not encrypted (only encoded)
-
-// Used for:
-
-// Identifying user
-
-// Role-based access (admin, user, etc.)
-
-
-// What JWT looks like
-// xxxxx.yyyyy.zzzzz
-
-
-// Header → algorithm
-
-// Payload → your data
-
-// Signature → integrity proof
-
-// All Base64 strings.
-
-// What this enables
-// ✔ Stateless authentication
-
-// No session stored in DB
-
-// Server just verifies token
-
-// ✔ Role-based authorization
-// if (req.user.role !== "admin") ...
-
-// ✔ Scales easily
-
-// Works across multiple servers
-
-
-
-
-
-
-
-// --------------------------------------------------------
-// 🚪 LOGOUT — Clears cookie
-// --------------------------------------------------------
-
-/*
-router.post("/logout", (req, res) => {
-  res.clearCookie("token");
-  res.json({ success: true, message: "Logged out successfully" });
-});
-
-*/
-//remove cookie named token from browser
-//cookie stores jwt
-//browser then no longer sends token
-//auth middleware fails
-//cookie is removed client side
-//server cant destroy it
 
 
 

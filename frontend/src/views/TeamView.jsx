@@ -7,18 +7,6 @@ import DeleteForms from "../components/DeleteForms";
 export default function TeamView({ tasks, users, teams, refresh, currentUser }) {
   
   
-  // // ✅ HARD SAFETY GUARD — PREVENTS WHITE SCREEN ON FIRST LOAD
-  if (!currentUser || !Array.isArray(tasks) || !Array.isArray(users) || !Array.isArray(teams)) {
-    refresh();
-    return (
-      <div className="max-w-5xl mx-auto py-10 text-center text-gray-600">
-        Loading team dashboard...
-      </div>
-      
-    );
-  }
-
-  
   const isAdmin = currentUser?.role === "admin";
 
   return (

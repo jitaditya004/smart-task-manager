@@ -1,0 +1,3 @@
+ALTER TABLE tasks
+ALTER COLUMN deadline TYPE TIMESTAMPTZ
+USING deadline::timestamptz;
