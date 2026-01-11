@@ -188,6 +188,7 @@ useEffect(() => {
       <Sidebar
         activeView={activeView}
         setActiveView={setActiveView}
+        user={currentUser}
         onLogout={handleLogout}
       />
 

@@ -19,9 +19,8 @@ router.get("/check", verifyToken, (req, res) => {
   });
 });
 
-// --------------------------------------------------------
-// 📝 SIGNUP
-// --------------------------------------------------------
+
+
 router.post("/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -64,7 +63,6 @@ router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // 1️⃣ Find user
     const { rows } = await db.query(
       `SELECT * FROM users WHERE username = $1`,
       [username]
@@ -76,16 +74,15 @@ router.post("/login", async (req, res) => {
 
     const user = rows[0];
 
-    // 2️⃣ Compare passwords
+    
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
     
-    // 3️⃣ Create JWT
     const token = jwt.sign(
-      { id: user.id, role: user.role, username: user.username },
+      { id: user.id, role: user.role, username: user.username,email: user.email },
       SECRET_KEY,
       { expiresIn: "1d" }
     );

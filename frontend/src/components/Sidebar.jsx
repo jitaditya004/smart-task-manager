@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Menu, X, User, Users, LogOut } from "lucide-react";
 import { apifetch } from "../api/api";
 
-function Sidebar({ activeView, setActiveView }) {
+function Sidebar({ activeView, setActiveView, user }) {
   const [isOpen, setIsOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -14,7 +14,7 @@ function Sidebar({ activeView, setActiveView }) {
     try {
       await apifetch("/auth/logout", {
         method: "POST",
-        credentials: "include", // ⭐ required for cookie-based logout
+        credentials: "include",
       });
 
       // Redirect user to login page
@@ -95,8 +95,30 @@ function Sidebar({ activeView, setActiveView }) {
           </button>
         </div>
 
+        
+            
         {/* 🚪 Logout Button */}
-        <div className="absolute bottom-6 w-full px-4">
+        <div className="absolute bottom-6 w-full px-4 ">
+           {/* 👤 Logged-in User */}
+          <div className="mt-4 mb-2 ">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/20 text-white">
+              <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center font-bold uppercase">
+                {user?.username?.[0]}
+              </div>
+
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">
+                  {user?.username}
+                </span>
+                <span className="text-sm ">
+                  {user?.email}
+                </span>
+                <span className="text-xs opacity-80">
+                  {user?.role}
+                </span>
+              </div>
+            </div>
+          </div>
           <button
             onClick={handleLogout}
             disabled={loggingOut}
