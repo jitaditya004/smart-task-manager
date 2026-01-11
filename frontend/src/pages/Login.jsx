@@ -25,14 +25,14 @@ async function handleSubmit(e) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(cleanedData), // ⭐ send cleaned inputs
+      body: JSON.stringify(cleanedData), //  send cleaned inputs
     });
 
     const data = await res.json();
 
     if (res.ok) {
       setMessage("✅ Login successful!");
-      setTimeout(() => onLoginSuccess(), 300);
+      setTimeout(() => onLoginSuccess(), 0);
     } else {
       setMessage(data.message || "❌ Invalid username or password");
     }

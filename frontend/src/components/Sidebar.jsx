@@ -18,7 +18,7 @@ function Sidebar({ activeView, setActiveView, user }) {
       });
 
       // Redirect user to login page
-      window.location.href = "/login";
+      window.location.href = "/";
     } catch (err) {
       console.error("Logout failed:", err);
       alert("Something went wrong while logging out!");
