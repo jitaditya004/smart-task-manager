@@ -32,7 +32,7 @@ function scheduleTaskEmail({ email, title, deadline }) {
               dateStyle: "medium",
               timeStyle: "short",
               timeZone: "Asia/Kolkata",
-            })} (UTC)</b>
+            })} (IST)</b>
           </p>
         `,
       });

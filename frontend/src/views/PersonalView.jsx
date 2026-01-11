@@ -16,7 +16,7 @@ export default function PersonalView({ tasks, users, teams, refresh, user }) {
 
 
   return (
-    <div className="max-w-3xl mx-auto space-y-10 py-6 px-4">
+    <div className="max-w-3xl mx-auto space-y-10 py-6 px-1">
 
       {/* Page Title */}
       <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">
@@ -25,7 +25,7 @@ export default function PersonalView({ tasks, users, teams, refresh, user }) {
 
       {/* ADMIN-ONLY — Create User Section */}
       {user?.role === "admin" && (
-        <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+        <section className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
           <h3 className="text-xl font-semibold text-indigo-800 mb-4">
             👑 Admin — Create User
           </h3>
@@ -34,7 +34,7 @@ export default function PersonalView({ tasks, users, teams, refresh, user }) {
       )}
 
       {/* Add Task Section */}
-      <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+      <section className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
         <h3 className="text-xl font-semibold text-indigo-800 mb-4">
           Add a New Task
         </h3>
@@ -42,7 +42,7 @@ export default function PersonalView({ tasks, users, teams, refresh, user }) {
       </section>
 
       {/* Task List Section */}
-      <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+      <section className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
         <h3 className="text-xl font-semibold text-indigo-800 mb-4">
           Your Tasks
         </h3>

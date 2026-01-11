@@ -10,7 +10,7 @@ export default function TeamView({ tasks, users, teams, refresh, currentUser }) 
   const isAdmin = currentUser?.role === "admin";
 
   return (
-    <div className="max-w-5xl mx-auto space-y-12 py-6 px-4">
+    <div className="max-w-5xl mx-auto space-y-12 py-6 px-1">
 
       {/* Page Title */}
       <h2 className="text-3xl font-extrabold text-indigo-900 tracking-tight">
@@ -22,7 +22,7 @@ export default function TeamView({ tasks, users, teams, refresh, currentUser }) 
 
         {/* CREATE USER — ONLY ADMIN */}
         {isAdmin && (
-          <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+          <div className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
             <h3 className="text-xl font-semibold text-indigo-800 mb-4">
               Create User
             </h3>
@@ -31,7 +31,7 @@ export default function TeamView({ tasks, users, teams, refresh, currentUser }) 
         )}
 
         {/* CREATE TEAM — ALWAYS VISIBLE */}
-        <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+        <div className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
           <h3 className="text-xl font-semibold text-indigo-800 mb-4">
             Create Team
           </h3>
@@ -41,7 +41,7 @@ export default function TeamView({ tasks, users, teams, refresh, currentUser }) 
 
       {/* DELETE USER & TEAM */}
 
-      <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+      <section className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
         <h3 className="text-xl font-semibold text-red-600 mb-4">
           Delete Users / Teams
         </h3>
@@ -56,7 +56,7 @@ export default function TeamView({ tasks, users, teams, refresh, currentUser }) 
       </section>
 
       {/* Task Creation */}
-      <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+      <section className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
         <h3 className="text-xl font-semibold text-indigo-800 mb-4">
           Create Team Task
         </h3>
@@ -64,7 +64,7 @@ export default function TeamView({ tasks, users, teams, refresh, currentUser }) 
       </section>
 
       {/* Task List */}
-      <section className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
+      <section className="bg-white p-2 rounded-2xl shadow-md hover:shadow-xl transition-all border border-gray-100">
         <h3 className="text-2xl font-semibold text-indigo-900 mb-4">
           Team Tasks
         </h3>

@@ -47,7 +47,7 @@ function UserForm({ refresh, user }) {
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+    <div className="p-2 bg-white rounded-xl  ">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Create User</h2>
 
       {/* Username */}
@@ -55,7 +55,7 @@ function UserForm({ refresh, user }) {
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="Username"
-        className="w-full p-3 mb-4 rounded-lg border border-gray-300 
+        className="w-full p-2 py-4 mb-4 rounded-lg border border-gray-300 
                    focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
       />
 
@@ -65,7 +65,7 @@ function UserForm({ refresh, user }) {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
-        className="w-full p-3 mb-6 rounded-lg border border-gray-300 
+        className="w-full p-2 py-4 mb-6 rounded-lg border border-gray-300 
                    focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
       />
 

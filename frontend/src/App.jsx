@@ -193,7 +193,7 @@ useEffect(() => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 p-1 overflow-auto">
         {activeView === "personal" ? (
           <PersonalView
             tasks={tasks}
